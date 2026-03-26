@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VDI at Scale 2025 — AWS WorkSpaces vs Citrix vs AVD vs Windows 365</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #17171f;
+    --border: #2a2a38;
+    --accent: #4f8eff;
+    --accent2: #ff4f7b;
+    --accent3: #4fffb0;
+    --warn: #ffb74f;
+    --text: #e8e8f0;
+    --text-muted: #7a7a9a;
+    --aws: #ff9900;
+    --citrix: #00a3e0;
+    --avd: #0078d4;
+    --w365: #7b2fff;
+    --purview: #6b2faf;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 80px;
+  }
+  .hero {
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    background: var(--bg2);
+    padding: 40px 40px 32px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,142,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; margin-bottom: 14px; }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(22px,4vw,34px); font-weight: 800; line-height: 1.18; color: #fff; margin-bottom: 18px; }
+  h1 span { color: var(--accent); }
+  .hero-sub { font-size: 15px; color: var(--text-muted); font-weight: 300; max-width: 680px; line-height: 1.65; }
+  .hero-meta { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+  .hero-badge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 5px 12px; border-radius: 2px; letter-spacing: .06em; }
+  .badge-fleet  { background: rgba(79,142,255,.12);  color: var(--accent);     border: 1px solid rgba(79,142,255,.3); }
+  .badge-agency { background: rgba(255,183,79,.12);  color: var(--warn);       border: 1px solid rgba(255,183,79,.3); }
+  .badge-field  { background: rgba(79,255,176,.10);  color: var(--accent3);    border: 1px solid rgba(79,255,176,.25); }
+  .badge-year   { background: rgba(255,255,255,.05); color: var(--text-muted); border: 1px solid var(--border); }
+  section { margin-bottom: 44px; }
+  h2 { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 18px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+  h2 .num { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--accent); background: rgba(79,142,255,.1); border: 1px solid rgba(79,142,255,.25); padding: 2px 8px; border-radius: 2px; }
+  h3 { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600; color: var(--text); margin: 22px 0 10px; }
+  p { margin-bottom: 12px; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+  .callout { border-left: 3px solid; padding: 14px 18px; margin: 20px 0; border-radius: 0 4px 4px 0; font-size: 14px; }
+  .callout-warn    { border-color: var(--warn);    background: rgba(255,183,79,.07);  }
+  .callout-info    { border-color: var(--accent);  background: rgba(79,142,255,.07);  }
+  .callout-ok      { border-color: var(--accent3); background: rgba(79,255,176,.06);  }
+  .callout-bad     { border-color: var(--accent2); background: rgba(255,79,123,.07);  }
+  .callout-purview { border-color: var(--purview); background: rgba(107,47,175,.08);  }
+  .callout-aws     { border-color: var(--aws);     background: rgba(255,153,0,.07);   }
+  .callout strong { display: block; margin-bottom: 4px; font-weight: 600; }
+  .callout-warn  strong { color: var(--warn);    }
+  .callout-info  strong { color: var(--accent);  }
+  .callout-ok    strong { color: var(--accent3); }
+  .callout-bad   strong { color: var(--accent2); }
+  .callout-purview strong { color: #c084fc; }
+  .callout-aws   strong { color: var(--aws); }
+  .table-wrap { overflow-x: auto; margin: 20px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+  thead th { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; padding: 10px 14px; text-align: left; border-bottom: 2px solid var(--border); background: var(--bg3); color: var(--text-muted); white-space: nowrap; }
+  thead th.h-aws  { color: var(--aws);    border-bottom-color: var(--aws);    }
+  thead th.h-ctx  { color: var(--citrix); border-bottom-color: var(--citrix); }
+  thead th.h-avd  { color: var(--avd);    border-bottom-color: var(--avd);    }
+  thead th.h-w365 { color: var(--w365);   border-bottom-color: var(--w365);   }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  tbody td { padding: 9px 14px; vertical-align: top; color: var(--text); }
+  tbody td:first-child { color: var(--text-muted); font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
+  .ok  { color: var(--accent3); }
+  .warn { color: var(--warn); }
+  .bad  { color: var(--accent2); }
+  .neu  { color: var(--text-muted); }
+  .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  @media (max-width:600px) { .score-grid { grid-template-columns: 1fr; } }
+  .score-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 16px 18px; }
+  .score-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); margin-bottom: 10px; letter-spacing: .06em; text-transform: uppercase; }
+  .score-row { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+  .score-name { font-size: 12px; width: 56px; flex-shrink: 0; font-weight: 500; }
+  .score-bar-bg { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 3px; }
+  .score-val { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--text-muted); width: 28px; text-align: right; }
+  .timeline { margin: 24px 0; position: relative; padding-left: 28px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--accent), var(--purview), var(--accent3)); }
+  .tl-item { position: relative; margin-bottom: 22px; }
+  .tl-item::before { content: ''; position: absolute; left: -24px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+  .tl-item.phase-purview::before { background: var(--purview); }
+  .tl-item.phase-ok::before      { background: var(--accent3); }
+  .tl-item.phase-warn::before    { background: var(--warn); }
+  .tl-item.phase-bad::before     { background: var(--accent2); }
+  .tl-phase { font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); margin-bottom: 3px; }
+  .tl-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 5px; }
+  .tl-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .stat-row { display: flex; gap: 14px; flex-wrap: wrap; margin: 20px 0; }
+  .stat-pill { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 14px 20px; text-align: center; min-width: 110px; flex: 1; }
+  .stat-pill .sv { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; display: block; }
+  .stat-pill .sl { font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); margin-top: 4px; }
+  .flow { display: flex; align-items: stretch; gap: 0; margin: 20px 0; font-size: 12px; font-family: 'IBM Plex Mono', monospace; overflow-x: auto; }
+  .fb { background: var(--bg2); border: 1px solid var(--border); padding: 12px 14px; text-align: center; flex: 1; min-width: 90px; }
+  .fb .fl { color: var(--text-muted); font-size: 10px; text-transform: uppercase; margin-bottom: 5px; }
+  .fb .fv { color: var(--text); font-size: 12px; font-weight: 500; }
+  .fb-bad  { border-color: var(--accent2); background: rgba(255,79,123,.06); }
+  .fb-warn { border-color: var(--warn);    background: rgba(255,183,79,.06); }
+  .fb-ok   { border-color: var(--accent3); background: rgba(79,255,176,.06); }
+  .fa { display: flex; align-items: center; padding: 0 6px; color: var(--text-muted); font-size: 16px; flex-shrink: 0; }
+  .verdict-block { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+  @media (max-width:580px) { .verdict-block { grid-template-columns: 1fr; } }
+  .verdict-card { border: 1px solid var(--border); border-radius: 4px; padding: 18px; background: var(--bg2); }
+  .verdict-card .vtag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .verdict-card .vsol { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .verdict-card .vbody { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+  .v-aws  { border-top: 2px solid var(--aws);    } .v-aws  .vsol { color: var(--aws);    }
+  .v-ctx  { border-top: 2px solid var(--citrix); } .v-ctx  .vsol { color: var(--citrix); }
+  .v-avd  { border-top: 2px solid var(--avd);    } .v-avd  .vsol { color: var(--avd);    }
+  .v-w365 { border-top: 2px solid var(--w365);   } .v-w365 .vsol { color: var(--w365);   }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 24px 0; }
+  @media (max-width:620px) { .grid3 { grid-template-columns: 1fr; } }
+  .grid-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 14px 16px; }
+  .grid-card .gc-tag { font-family: 'IBM Plex Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 8px; }
+  .grid-card .gc-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .grid-card .gc-body { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  mark { background: rgba(79,142,255,.18); color: var(--accent); padding: 1px 5px; border-radius: 2px; font-size: .92em; }
+  mark.y { background: rgba(79,255,176,.14); color: var(--accent3); }
+  mark.r { background: rgba(255,79,123,.14); color: var(--accent2); }
+  mark.o { background: rgba(255,183,79,.14); color: var(--warn); }
+  mark.p { background: rgba(107,47,175,.18); color: #c084fc; }
+  mark.a { background: rgba(255,153,0,.14);  color: var(--aws); }
+  blockquote { border-left: 2px solid var(--accent); padding: 10px 18px; margin: 18px 0; color: var(--text-muted); font-style: italic; font-size: 14px; }
+  ul.body-list { padding-left: 20px; margin-bottom: 12px; }
+  ul.body-list li { margin-bottom: 6px; }
+  code { font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: var(--bg3); border: 1px solid var(--border); padding: 1px 6px; border-radius: 2px; color: var(--accent3); }
+  .code-block { background: var(--bg3); border: 1px solid var(--border); border-radius: 4px; padding: 14px 18px; margin: 12px 0; font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--accent3); overflow-x: auto; line-height: 1.8; }
+  .code-block .cm { color: var(--text-muted); }
+  .code-block .ck { color: #c084fc; }
+  .footer { margin-top: 60px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">// Technical Analysis · Endpoint & VDI Architecture · Field Experience</div>
+  <h1>VDI at Scale 2025: <span>AWS WorkSpaces</span>, Citrix, AVD &amp; Windows 365<br>— 8,000 users · 1,600 branches · full migration</h1>
+  <p class="hero-sub">Beyond vendor benchmarks: an unfiltered field report on a large-scale VDI deployment — covering the decisive role of an AWS financial commitment, dual identity architecture, Exchange Online migration, OneDrive/FastTrack, Purview PST import, Teams offloading reality, cloud print servers, and a purpose-built Azure migration backend.</p>
+  <div class="hero-meta">
+    <span class="hero-badge badge-fleet">8,000 users · Production</span>
+    <span class="hero-badge badge-agency">1,600 branches</span>
+    <span class="hero-badge badge-fleet">10,000 mailboxes · 60 TB PST</span>
+    <span class="hero-badge badge-field">Field experience</span>
+    <span class="hero-badge badge-year">2025 · Q2</span>
+  </div>
+</div>
+
+<!-- KEY NUMBERS -->
+<section>
+  <div class="stat-row">
+    <div class="stat-pill"><span class="sv" style="color:var(--aws)">8,000</span><span class="sl">WorkSpaces</span></div>
+    <div class="stat-pill"><span class="sv" style="color:var(--warn)">1,600</span><span class="sl">Branches</span></div>
+    <div class="stat-pill"><span class="sv" style="color:var(--accent2)">60 TB</span><span class="sl">PST to migrate</span></div>
+    <div class="stat-pill"><span class="sv" style="color:var(--accent3)">2+0</span><span class="sl">Dual identity tenants</span></div>
+    <div class="stat-pill"><span class="sv" style="color:#c084fc">AWS lock</span><span class="sl">Decisive factor</span></div>
+  </div>
+  <p>Choosing a VDI platform for thousands of users is rarely a purely technical decision. It is a multi-year operational commitment with direct implications on IT team productivity, service quality, and the capacity to evolve without rebuilding everything. Sometimes, it is also a financial one — and that changes everything.</p>
+</section>
+
+<!-- 01. WHY AWS WORKSPACES — THE DECISIVE FACTOR -->
+<section>
+  <h2><span class="num">01</span> Why AWS WorkSpaces — the decisive factor nobody mentions</h2>
+
+  <div class="callout callout-aws">
+    <strong>💰 The real reason: a multi-million AWS financial commitment</strong>
+    The selection of AWS WorkSpaces as the target platform was not driven solely by technical merit. The organization had a significant existing financial commitment with AWS — exiting the contract before its end date would have triggered penalties running into several million euros. This commercial constraint made WorkSpaces the only economically rational choice at the time of decision, regardless of the technical trade-offs documented in this article.
+  </div>
+
+  <p>This context is essential to understand what follows. The teams did not choose WorkSpaces blind — they chose it knowingly, with a clear view of its limitations, and invested heavily in custom tooling to compensate for its structural gaps. The result is a pragmatic, industrialized architecture built on top of a constrained platform choice.</p>
+
+  <p>This is a reality that vendor comparisons never surface: <mark r>the best VDI platform on paper is not always the one you can actually deploy</mark>. Financial lock-in, existing contracts, and organizational momentum are legitimate architecture constraints — and they deserve to be documented as such.</p>
+</section>
+
+<!-- 02. AWS WORKSPACES AT SCALE — BLIND SPOTS -->
+<section>
+  <h2><span class="num">02</span> AWS WorkSpaces at 1,600 branches — the blind spots multiply</h2>
+
+  <h3>SAML MFA friction at scale</h3>
+  <p>Authentication relies on two distinct layers: <mark>Active Directory on-premises</mark> for WorkSpace domain join (Hybrid Join) and network authentication, and <mark>Entra ID as the SAML IdP</mark> for MFA on the WorkSpaces client. The AWS WorkSpaces client presents the Entra ID SAML portal — once the assertion is validated, the session opens. On a shared workstation in a branch where agents take turns, this full SAML cycle repeats at every session. Across 1,600 sites, SAML assertion failures (IdP token expiry, redirect latency, IAM Identity Center timeouts) generate a measurable helpdesk load.</p>
+
+  <div class="callout callout-info">
+    <strong>💡 Conditional Access — applies to M365 services from within the VDI, not to the device</strong>
+    The Conditional Access policies target M365 applications (Exchange Online, SharePoint, Teams) accessed from within the WorkSpace — not the local thin client device. The WorkSpace itself cannot be targeted by Intune device compliance CA (no MDM enrollment). CA must be configured to accept Hybrid Joined devices without requiring an Intune compliance signal — otherwise Exchange Online access from WorkSpaces is blocked the moment strict CA is enforced.
+  </div>
+
+  <h3>Agency segregation: the App Registration anti-pattern</h3>
+  <p>WorkSpaces Personal has no native fine-grained isolation by functional perimeter. The standard workaround: <mark r>multiply Entra ID App Registrations</mark> — one per agency group or functional scope. Across 1,600 branches, even with consolidation by region or business profile, this quickly reaches 50+ App Registrations to maintain: independent secret/certificate rotation cycles, no consolidated view of effective access rights per user, and a distinct audit perimeter per App Reg during compliance reviews.</p>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ On AVD</strong>
+    AVD resolves this by design: Host Pools are assigned to Entra ID groups, Conditional Access applies uniformly across all 1,600 branches from a single policy. Zero additional App Registrations. Compliance audits produce one Entra ID report — not fifty.
+  </div>
+
+  <h3>FabulaTech × 1,600 agent deployments</h3>
+  <p>AWS WorkSpaces lacks a mature USB/serial device redirection engine comparable to Citrix HDX. FabulaTech for Remote Desktop fills this gap — supporting webcams, local printers, scanners, badge readers, and generic USB peripherals. At 1,600 branches, this introduces: agent maintenance in every golden image update cycle, plug-in maintenance across heterogeneous branch terminals, incompatibility with the AWS WorkSpaces Web client, and a three-tier troubleshooting chain (WS agent + client plug-in + local driver) across 1,600 sites.</p>
+</section>
+
+<!-- 03. DUAL IDENTITY — THIN CLIENT ARCHITECTURE -->
+<section>
+  <h2><span class="num">03</span> Dual identity — the W11 thin client on a provider tenant</h2>
+
+  <p>One of the most architecturally distinctive aspects of this deployment: the Windows 11 thin clients that replaced Citrix endpoints are <mark o>managed by Intune on a service provider's tenant</mark> — not the organization's own tenant. This creates a deliberate dual identity model.</p>
+
+  <div class="flow">
+    <div class="fb fb-warn">
+      <div class="fl">Local device</div>
+      <div class="fv">W11 · Provider tenant · Intune + Autopatch</div>
+    </div>
+    <div class="fa">≠</div>
+    <div class="fb fb-ok">
+      <div class="fl">VDI session</div>
+      <div class="fv">WorkSpace · Allianz AD + Entra ID SAML</div>
+    </div>
+  </div>
+
+  <h3>What runs where</h3>
+  <ul class="body-list">
+    <li><strong>Local W11 thin client</strong>: minimal locked-down usage — browser and WorkSpaces client only. No local productivity apps. No M365 apps (Outlook, Teams). Everything runs inside the VDI. The device acts as a pure display terminal.</li>
+    <li><strong>WorkSpace (VDI)</strong>: all business applications, Outlook, Teams, intranet, business network flows. The WorkSpace is the actual working environment — the W11 merely carries the display protocol stream.</li>
+    <li><strong>Network flows</strong>: the W11 thin client carries only PCoIP/WSP display protocol traffic toward AWS. All application and business network flows originate from the VDI side — toward internet or internal AWS network.</li>
+  </ul>
+
+  <h3>Security stack on the thin client</h3>
+  <ul class="body-list">
+    <li><mark>Zscaler ZPA + ZIA</mark> deployed on both the W11 thin client and the WorkSpace VDI — two separate Zscaler enforcement points</li>
+    <li><mark>Nexthink</mark> for user experience monitoring on the thin client (deployment on VDI is under active debate — sizing constraints at 8 GB / 2 vCPU make it a significant cost discussion)</li>
+    <li><mark>EDR</mark> covering both thin client and WorkSpace — full endpoint protection on both sides of the display protocol</li>
+  </ul>
+
+  <div class="callout callout-info">
+    <strong>💡 Update pipelines — completely separate by design</strong>
+    W11 thin clients: Intune + Windows Autopatch (provider tenant) — patches delivered via Microsoft cloud, no dependency on the organization's infrastructure. WorkSpaces VDI: SCCM with Distribution Points hosted in AWS (internal AWS network) — updates delivered entirely within AWS, no WAN dependency. Two completely independent pipelines matching the dual identity architecture.
+  </div>
+</section>
+
+<!-- 04. ZSCALER SPLIT TUNNEL — RECOMMENDATIONS -->
+<section>
+  <h2><span class="num">04</span> Zscaler split tunnel — what should bypass ZIA</h2>
+
+  <p>With Zscaler on both the thin client and the WorkSpace, and the provider network being plain public internet (home broadband boxes — except for the dedicated print network), the split tunnel configuration is critical. Any additional hop through a ZIA enforcement node on the display protocol stream directly degrades session quality.</p>
+
+  <h3>On the W11 thin client — recommended bypasses</h3>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Flow</th><th>Destination</th><th>Recommendation</th><th>Reason</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>WorkSpaces streaming (PCoIP)</td>
+          <td><code>*.workspaces.*.amazonaws.com</code> UDP 4172</td>
+          <td class="ok">✓ Direct bypass</td>
+          <td>Latency-sensitive display protocol — any ZIA hop degrades session quality</td>
+        </tr>
+        <tr>
+          <td>WorkSpaces streaming (WSP)</td>
+          <td>AWS endpoints UDP/TCP 443</td>
+          <td class="ok">✓ Direct bypass</td>
+          <td>Same — streaming protocol must be latency-optimized</td>
+        </tr>
+        <tr>
+          <td>Entra ID SAML auth</td>
+          <td><code>login.microsoftonline.com</code>, <code>*.identity.azure.com</code></td>
+          <td class="ok">✓ Direct bypass</td>
+          <td>SAML token can expire during SSL inspection — auth failures at scale</td>
+        </tr>
+        <tr>
+          <td>Zscaler ZEN nodes</td>
+          <td>Zscaler infrastructure IPs</td>
+          <td class="ok">✓ Direct bypass</td>
+          <td>Avoid hairpin — ZIA traffic must not loop through itself</td>
+        </tr>
+        <tr>
+          <td>Windows Autopatch / Intune</td>
+          <td>Microsoft Update, Intune endpoints</td>
+          <td class="warn">⚠ Direct or ZIA</td>
+          <td>Thin client updates via provider tenant Intune — ZIA inspection optional</td>
+        </tr>
+        <tr>
+          <td>General web browsing</td>
+          <td>Any</td>
+          <td class="warn">→ ZIA</td>
+          <td>Thin client has minimal local web access — ZIA filtering appropriate</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>On the WorkSpace VDI — recommended bypasses</h3>
+  <ul class="body-list">
+    <li><mark>Microsoft 365 endpoints</mark> (Exchange Online, SharePoint, Teams media) — follow Microsoft's official M365 URL/IP list for Optimize and Allow categories, direct bypass from the VDI</li>
+    <li><mark>AWS internal network flows</mark> (SCCM DPs, FSxN, internal services) — already intra-AWS, no ZIA involvement needed</li>
+    <li><mark>Entra ID / Azure AD</mark> authentication endpoints — direct, no SSL inspection on identity flows</li>
+    <li>Everything else routed through ZIA for content filtering and DLP from the VDI</li>
+  </ul>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ Nexthink on VDI — the sizing dilemma</strong>
+    At 8 GB RAM / 2 vCPU per WorkSpace, adding Nexthink inside the VDI is a genuine resource pressure. With 8,000 WorkSpaces, any configuration change — RAM bump from 8 to 16 GB, vCPU from 2 to 4 — translates into millions of euros in additional monthly AWS costs. The decision to deploy Nexthink on the VDI must be weighed against this cost impact. The current compromise: Nexthink on the thin client provides endpoint experience data; VDI experience is monitored indirectly through session quality metrics and user feedback.
+  </div>
+</section>
+
+<!-- 05. PRINT ARCHITECTURE -->
+<section>
+  <h2><span class="num">05</span> Print architecture — dedicated network, separated flows</h2>
+
+  <p>Print servers are hosted on AWS VMs. Physical printers are local to each branch. Crucially, printing uses a <mark y>dedicated network separate from the VDI user network</mark> — print jobs do not compete with the PCoIP/WSP display protocol stream on the same link.</p>
+
+  <div class="flow">
+    <div class="fb fb-bad">
+      <div class="fl">VDI Session</div>
+      <div class="fv">WorkSpace AWS</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-warn">
+      <div class="fl">Spooling</div>
+      <div class="fv">Print Server VM AWS</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-ok">
+      <div class="fl">Dedicated print network</div>
+      <div class="fv">Separate from VDI network</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-ok">
+      <div class="fl">Destination</div>
+      <div class="fv">Local branch printer</div>
+    </div>
+  </div>
+
+  <p>Network separation means a large print job does not impact session fluidity for other agents on the same branch. The remaining operational constraints are different in nature: dependency on the dedicated print network (if it goes down, printing stops — but VDI sessions are unaffected), Print Server VMs to maintain (patches, spooler sizing, high availability), and printer mapping via GPO/scripts without native auto-discovery on the AWS side.</p>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ Target architecture — cloud printing</strong>
+    Migration toward Microsoft Universal Print (for AVD/W365) or Citrix Universal Print Server would eliminate the Print Server VMs entirely. On AVD, Universal Print routes jobs directly from Azure to the branch printer via a lightweight on-premises connector — no dedicated VM, no separate print network required, automatic printer mapping by Entra ID group/location.
+  </div>
+</section>
+
+<!-- 06. TEAMS OFFLOADING -->
+<section>
+  <h2><span class="num">06</span> Teams offloading — the transparency myth</h2>
+
+  <div class="callout callout-ok">
+    <strong>✅ UPDATE — Teams offloading on WorkSpaces: now Generally Available (Feb 19, 2026)</strong>
+    Microsoft announced GA of Teams VDI optimization for Amazon WorkSpaces on February 19, 2026 — after a public preview that launched in September 2025. Our organization participated in the TAP (Technology Adoption Program) that helped shape this release. This is a fundamental architectural shift: media processing is now offloaded from the VM to the endpoint device entirely.
+  </div>
+
+  <h3>How Teams VDI2 optimization works — the Slimcore architecture</h3>
+  <p>
+    The new optimization is based on Microsoft's <mark>VDI2 / Slimcore Media engine</mark> — a complete re-architecture from the legacy WebRTC-based approach used by AVD and Citrix. The flow on WorkSpaces:
+  </p>
+
+  <div class="flow">
+    <div class="fb fb-ok">
+      <div class="fl">Teams on VM</div>
+      <div class="fv">VDI Bridge detects VDI</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-ok">
+      <div class="fl">WorkSpaces client</div>
+      <div class="fv">Loads MSTeamsPlugin.dll on endpoint</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-ok">
+      <div class="fl">Slimcore MSIX</div>
+      <div class="fv">Downloaded from Microsoft CDN to endpoint</div>
+    </div>
+    <div class="fa">→</div>
+    <div class="fb fb-ok">
+      <div class="fl">MsTeamsVDI.exe</div>
+      <div class="fv">Local process handles media offload</div>
+    </div>
+  </div>
+
+  <p>
+    The Teams client installed <strong>inside the WorkSpace</strong> is required — it provides the VDI Bridge and the <code>MSTeamsPlugin.dll</code> loaded on the endpoint. Audio and video bypass the VM entirely and flow directly between the endpoint and Teams services.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Teams criterion</th>
+          <th class="h-aws">AWS WorkSpaces (VDI2)</th>
+          <th class="h-ctx">Citrix DaaS</th>
+          <th class="h-avd">AVD</th>
+          <th class="h-w365">Windows 365</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Offloading engine</td>
+          <td class="ok">✓ VDI2 / Slimcore (GA Feb 2026)</td>
+          <td class="warn">⚠ HDX RealTime (legacy WebRTC)</td>
+          <td class="warn">⚠ WebRTC (legacy — migration to VDI2 in progress)</td>
+          <td class="warn">⚠ WebRTC (legacy — migration to VDI2 in progress)</td>
+        </tr>
+        <tr>
+          <td>Media through VM</td>
+          <td class="ok">No — endpoint direct</td>
+          <td class="warn">Partial (HDX)</td>
+          <td class="ok">No (P2P or relay)</td>
+          <td class="ok">No (P2P or relay)</td>
+        </tr>
+        <tr>
+          <td>VM CPU during calls</td>
+          <td class="ok">Low (offloaded)</td>
+          <td class="warn">Moderate</td>
+          <td class="ok">Low</td>
+          <td class="ok">Low</td>
+        </tr>
+        <tr>
+          <td>Architecture maturity</td>
+          <td class="warn">GA but recent — real-world at scale still being validated (TAP feedback)</td>
+          <td class="warn">Mature but version-lock complexity</td>
+          <td class="ok">Mature (deprecating WebRTC → VDI2)</td>
+          <td class="ok">Mature</td>
+        </tr>
+        <tr>
+          <td>Windows client only</td>
+          <td class="warn">⚠ Windows WorkSpaces client only — AppStream not supported</td>
+          <td class="ok">Multi-platform</td>
+          <td class="ok">Multi-platform</td>
+          <td class="ok">Multi-platform</td>
+        </tr>
+        <tr>
+          <td>Copilot in Teams / AI features</td>
+          <td class="ok">✓ Feature parity claimed</td>
+          <td class="warn">⚠ Partial</td>
+          <td class="ok">✓</td>
+          <td class="ok">✓</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Why "efficiency is still a debate" — honest field caveats</h3>
+  <p>
+    The architecture is sound and the GA announcement is a real milestone. But at 8,000 users across 1,600 branches on <mark o>public internet (home broadband boxes)</mark>, several operational questions remain open from our TAP experience:
+  </p>
+  <ul class="body-list">
+    <li><strong>Slimcore MSIX CDN download on first launch</strong>: the package is pulled from Microsoft's public CDN to the endpoint at first use. On Zscaler ZIA-managed thin clients, the CDN endpoint (<code>*.cdn.teams.microsoft.com</code>) must be in the ZIA bypass or allowlist — SSL inspection will break the download silently. With 1,600 branches potentially hitting this simultaneously on rollout day, it's a traffic event to plan for.</li>
+    <li><strong>8 GB / 2 vCPU WorkSpace sizing</strong>: offloading removes media CPU load from the VM — which is good. But if the WorkSpace was already memory-constrained, the Teams client still runs inside the VM for signaling, consuming RAM. No impact on the offloading itself, but worth monitoring with any Nexthink-equivalent telemetry.</li>
+    <li><strong>Thin client hardware floor</strong>: Slimcore runs on the endpoint. On older or low-spec W11 thin client hardware, the local decode/encode can saturate the endpoint CPU — the opposite problem from before. Nexthink on the thin client becomes critical to detect this regression.</li>
+    <li><strong>Version alignment</strong>: the VDI Bridge, <code>MSTeamsPlugin.dll</code>, and Slimcore MSIX must be version-aligned. SCCM manages the Teams client in the WorkSpace; the WorkSpaces client on W11 is managed by the provider tenant via Intune/Autopatch. Two separate update pipelines — version drift is a real risk.</li>
+  </ul>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ Legacy WebRTC deprecation — AVD and Citrix are also affected</strong>
+    The Slimcore/VDI2 architecture is Microsoft's strategic direction for ALL VDI platforms — not just WorkSpaces. AVD and Citrix are currently migrating from the legacy WebRTC-based optimization to VDI2. The legacy WebRTC model introduced version-dependency on external components and infrastructure alignment issues that Microsoft is retiring. Organizations on AVD or Citrix should plan for this transition — the new model aligns Teams VDI with the native client architecture for faster innovation and better reliability.
+  </div>
+
+  <div class="callout callout-info">
+    <strong>💡 Monitoring VDI2 offloading status</strong>
+    The <code>isOptimized</code> field in Teams diagnostics logs confirms whether VDI2 offloading is active. Monitor via Teams Admin Center → Call Quality Dashboard filtered by branch subnet. With 1,600 branches, any silent fallback to non-optimized mode (VM-side media) will appear as a CPU spike on the WorkSpace fleet — detectable in CloudWatch or SCCM hardware inventory deltas.
+  </div>
+</section>
+
+<!-- 07. PROFILE MIGRATION — CPM -->
+<section>
+  <h2><span class="num">07</span> Profile migration — Citrix CPM roaming profiles</h2>
+
+  <p>The source environment uses <mark>Citrix Profile Management (CPM) with roaming profiles stored on a file server</mark>. There are no VHDx containers to mount or dismount — profiles are a plain directory tree on an SMB share. This makes the extraction pipeline significantly cleaner than an FSLogix-based source.</p>
+
+  <div class="callout callout-ok">
+    <strong>✅ Key advantage: cold extraction, no live session required</strong>
+    CPM profiles are stored at <code>\\file-server\profiles\%username%\UPM_Profile\</code> — a standard file system tree including <code>AppData\Roaming</code>, <code>AppData\Local</code>, and <code>NTUSER.DAT</code>. The collection script runs entirely at rest, without requiring a connected session, by accessing the share directly from a migration server. Citrix sessions are disconnected before the script runs, ensuring PSTs are not locked by Outlook.
+  </div>
+
+  <h3>Collection script — cold extraction from CPM share</h3>
+  <div class="code-block">
+    <span class="cm"># Cold collection from CPM file server share</span><br>
+    $cpmRoot = "\\file-srv\profiles\$username\UPM_Profile"<br>
+    $staging = "\\mig-srv\staging\$username"<br><br>
+    <span class="cm"># Outlook signatures (AppData\Roaming — always in CPM)</span><br>
+    Copy-Item "$cpmRoot\AppData\Roaming\Microsoft\Signatures" "$staging\Signatures" -Recurse -Force<br><br>
+    <span class="cm"># Chrome data (AppData\Local — available if CPM policy includes it)</span><br>
+    Copy-Item "$cpmRoot\AppData\Local\Google\Chrome\User Data\Default\Bookmarks" "$staging\Chrome\" -Force -ErrorAction SilentlyContinue<br><br>
+    <span class="cm"># Registry — load NTUSER.DAT hive cold (no live session needed)</span><br>
+    reg load "HKLM\TempHive_$username" "$cpmRoot\NTUSER.DAT"<br>
+    reg export "HKLM\TempHive_$username\Software\Microsoft\Office\16.0\Outlook\Profiles" "$staging\outlook_profiles.reg" /y<br>
+    reg export "HKLM\TempHive_$username\Software\Microsoft\Office" "$staging\office_settings.reg" /y<br>
+    reg unload "HKLM\TempHive_$username"
+  </div>
+
+  <h3>OneDrive Known Folder Move — all folders, zero in FSLogix</h3>
+  <p>The target architecture moves <strong>all</strong> Known Folders to OneDrive — not just the classic three. Desktop, Documents, Downloads, Videos, Pictures, Music: everything is redirected to OneDrive for Business. <mark y>Nothing is stored in FSLogix</mark> — the Profile Container is reduced to the strict minimum of application AppData Roaming.</p>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ KFM deployment — first-logon script order matters</strong>
+    OneDrive must be started and authenticated before KFM is triggered on large folders. A first-logon startup script (or GPO) must enforce this sequence: (1) verify OneDrive is running and signed in, (2) activate KFM silently via registry, (3) trigger Desktop and Documents first (small, fast), (4) trigger Downloads, Videos, Pictures in background — these can be multi-GB and must not block the logon. Deploying KFM before OneDrive is ready results in empty folders — a perceived data loss for the user.
+  </div>
+
+  <h3>Application data migration — what is where</h3>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>In CPM share</th>
+          <th>Migration action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Outlook signatures</td>
+          <td class="ok">✓ AppData\Roaming (always)</td>
+          <td class="ok">Direct copy from CPM share to WorkSpace</td>
+        </tr>
+        <tr>
+          <td>Outlook autocomplete (2016+)</td>
+          <td class="ok">✓ Stored in Exchange mailbox (IPM.Configuration.Autocomplete)</td>
+          <td class="ok">Automatic — migrated with the mailbox</td>
+        </tr>
+        <tr>
+          <td>Outlook profile / accounts</td>
+          <td class="ok">✓ NTUSER.DAT → HKCU\...\Outlook\Profiles</td>
+          <td class="warn">Export from CPM hive + import at first WorkSpace logon (before Outlook opens)</td>
+        </tr>
+        <tr>
+          <td>Rules, categories, views</td>
+          <td class="ok">✓ Stored in Exchange mailbox</td>
+          <td class="ok">Automatic — migrated with the mailbox</td>
+        </tr>
+        <tr>
+          <td>OST cache</td>
+          <td class="warn">⚠ AppData\Local — present if CPM policy includes it</td>
+          <td class="ok">Do not migrate — let Outlook rebuild from Exchange Online. Redirect OST to D:\Outlook via ForceOSTPath registry key to avoid C: saturation.</td>
+        </tr>
+        <tr>
+          <td>Chrome Bookmarks/Preferences</td>
+          <td class="warn">⚠ AppData\Local — present if CPM policy includes it</td>
+          <td class="warn">Copy from CPM if available. Otherwise deploy via Chrome Enterprise policy (ExtensionInstallForcelist, managed bookmarks).</td>
+        </tr>
+        <tr>
+          <td>Edge data</td>
+          <td class="ok">✓ Synced via Entra ID / M365 account</td>
+          <td class="ok">No action — transparent at first Edge launch on WorkSpace</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>CIS-hardened VDI — GPO generation via XML parser</h3>
+  <p>WorkSpaces are hardened with a custom CIS profile derived from official CIS benchmarks. Rather than manually maintaining GPO templates, a <mark>PowerShell XML parser</mark> extracts all recommendations directly from the CIS SCAP/XML benchmark files and injects them into GPOs programmatically:</p>
+  <ul class="body-list">
+    <li><strong>GPOs organized by product scope</strong>: Windows OS, Office 2016, Edge, Chrome — one GPO per product for granular control and rollback capability</li>
+    <li><strong>Computer Configuration and User Configuration</strong> both covered — with a <strong>loopback policy</strong> applied on the VDI OU to enforce User scope settings regardless of the user's home OU</li>
+    <li><strong>Maintainability</strong>: when CIS releases an updated benchmark XML, the parser re-runs and generates a delta GPO — no manual ADMX hunting</li>
+    <li>The approach is far more auditable than hand-crafted GPOs — every setting is traceable back to a specific CIS recommendation ID in the source XML</li>
+  </ul>
+</section>
+
+<!-- 08. EXCHANGE + PST MIGRATION -->
+<section>
+  <h2><span class="num">08</span> Exchange Online migration &amp; PST import — 60 TB pipeline</h2>
+
+  <p>The Exchange migration covers <mark>8,000 user mailboxes + 2,000 shared mailboxes</mark> and <mark r>60 TB of PST files</mark> stored on the AWS file server (CPM share). Since data is already in AWS, the transfer to Azure Blob for Purview Import is intra-cloud — no public bandwidth constraint, no Drive Shipping required.</p>
+
+  <h3>Exchange — critical points in VDI context</h3>
+  <ul class="body-list">
+    <li><mark o>Autodiscover V2</mark>: with Hybrid Joined WorkSpaces and Entra ID auto-configuration, Autodiscover V2 works natively. The risk is stale SCP records in AD or a <code>PreferLocalXML</code> registry key still pointing on-premises during coexistence — this generates mass re-prompt events at 8,000 simultaneous sessions</li>
+    <li><mark o>Modern Auth (OAuth 2.0)</mark>: with Hybrid Join and M365 auto-config, OAuth 2.0 is the default. Outlook auto-configures silently from the Entra ID token — no credential prompt if the CA policy is satisfied</li>
+    <li><mark o>OST reconstruction</mark>: plan a first-sync window per user batch. A 30 GB mailbox on a WorkSpace with OST redirected to D: can take 2–3 hours of initial sync — do not validate migration until Outlook has completed its first full synchronization</li>
+    <li>Shared mailboxes and resource mailboxes must be migrated before the users who hold delegations on them</li>
+  </ul>
+
+  <h3>PST migration pipeline — AWS → Azure Blob → Purview</h3>
+
+  <div class="timeline">
+    <div class="tl-item phase-warn">
+      <div class="tl-phase">Step 0 — Pre-condition</div>
+      <div class="tl-title">Disconnect Citrix sessions — PSTs unlocked</div>
+      <div class="tl-body">Citrix sessions are explicitly disconnected before the collection script runs. This ensures PSTs are not mounted by Outlook and are not file-locked. Safe copy from the CPM share — no corruption risk. No VHDx to dismount, plain SMB file access.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-phase">J-15 — Simultaneous with first delta</div>
+      <div class="tl-title">PSTs set to read-only + first OneDrive delta sync</div>
+      <div class="tl-body">At J-15, PSTs are set to read-only at the file share ACL level AND via GPO DisablePST (<code>HKCU\Software\Microsoft\Office\16.0\Outlook\DisablePST = 1</code>). Users can no longer modify or create PSTs. All subsequent delta passes (J-10, J-5, J0) capture a frozen, consistent state.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-phase">Data migration</div>
+      <div class="tl-title">1 full copy + 3 delta syncs</div>
+      <div class="tl-body">1 full copy (AWS → OneDrive) then delta syncs at J-15, J-10, J-5, and J0 for personal data files. The 15-day window is used to verify and remediate: delegations, data completeness, PST import validation, license checks.</div>
+    </div>
+    <div class="tl-item phase-purview">
+      <div class="tl-phase">PST staging</div>
+      <div class="tl-title">AWS file server → Azure Blob (intra-cloud)</div>
+      <div class="tl-body">PSTs are copied from the CPM share to an Azure Blob Storage container (SAS URL provided by Purview Import) via AzCopy. Since data is already in AWS and the transfer goes to Azure, this is effectively intra-cloud — no public internet bandwidth constraint, no Drive Shipping needed for 60 TB.</div>
+    </div>
+    <div class="tl-item phase-warn">
+      <div class="tl-phase">Corrupted PSTs</div>
+      <div class="tl-title">Quarantine → remediation → re-inject</div>
+      <div class="tl-body">Corrupted PSTs detected during collection are moved to a dedicated quarantine folder on the migration server. After remediation attempt, if successful, a CSV file is uploaded to the Blob for Purview Import. If remediation fails, the PST is flagged in SQL and an alert is sent to the project team.</div>
+    </div>
+    <div class="tl-item phase-ok">
+      <div class="tl-phase">Purview Import</div>
+      <div class="tl-title">Each PST → named subfolder in Online Archive</div>
+      <div class="tl-body">Each PST is deposited in a named subfolder within the user's Online Archive (e.g., <code>Archive\PST_2019_filename</code>). This enables precise per-folder item count comparison between source PST and target Archive.</div>
+    </div>
+  </div>
+
+  <h3>PST integrity verification — Aspose.Email + per-folder item count</h3>
+  <p>Post-import verification compares item counts per folder between the source PST and the target Online Archive. The comparison is done at the <strong>folder level</strong> (Inbox, Sent Items, custom folders) — not just a global item count. Attachments are not counted separately due to the absence of EWS access on the Archive side (Graph API <code>Get-MailboxFolderStatistics</code> provides item counts but not attachment details).</p>
+
+  <div class="code-block">
+    <span class="cm"># PST parsing via Aspose.Email 2.5.11 DLL</span><br>
+    Add-Type -Path ".\Aspose.Email.dll"<br>
+    $pst = [Aspose.Email.Storage.Pst.PersonalStorage]::FromFile($pstPath)<br>
+    $folders = $pst.RootFolder.GetSubFolders()<br>
+    foreach ($folder in $folders) {<br>
+    &nbsp;&nbsp;$sourceCount = $folder.ContentCount<br>
+    &nbsp;&nbsp;<span class="cm"># Compare with Graph API Get-MailboxFolderStatistics result</span><br>
+    &nbsp;&nbsp;$targetFolder = $archiveStats | Where-Object { $_.Name -eq $folder.DisplayName }<br>
+    &nbsp;&nbsp;$delta = [math]::Abs($sourceCount - $targetFolder.ItemsInFolder)<br>
+    &nbsp;&nbsp;[PSCustomObject]@{ Folder=$folder.DisplayName; Source=$sourceCount; Target=$targetFolder.ItemsInFolder; Delta=$delta }<br>
+    }
+  </div>
+
+  <h3>Macro signing — enterprise code signing certificate</h3>
+  <p>Macros discovered in Office files during the PST and profile collection phase are <mark>signed on-the-fly using an enterprise code signing certificate</mark>. This happens in the pre-migration script — before the files are staged to the Blob. The certificate is an internal PKI code signing cert, applied programmatically via PowerShell. Signed macros pass the Office macro security policy in the target WorkSpace environment without requiring the user to take any action.</p>
+
+  <h3>Data retention — files older than 1 year</h3>
+  <p>Files older than one year have their modification date set to exactly one year ago before migration. This prevents the organization's data retention policy (maximum 6 years) from triggering immediate deletion on data that is technically older. This date manipulation is applied consistently across both personal file migrations and PST content where technically feasible.</p>
+
+  <div class="callout callout-purview">
+    <strong>🔷 Labeling — deferred to post-project</strong>
+    No Microsoft Purview sensitivity labeling solution is in place yet. Labeling will be applied as a separate post-migration workstream. All migrated data (PSTs, OneDrive files) is stored unlabeled and will need to go through a labeling campaign once the classification framework is defined.
+  </div>
+</section>
+
+<!-- 09. ONEDRIVE + FASTTRACK -->
+<section>
+  <h2><span class="num">09</span> OneDrive migration — FastTrack &amp; the cross-cloud pipeline</h2>
+
+  <p>Personal data (CPM profile files, network drive shares) is being migrated to OneDrive for Business. The transfer from AWS to Azure Blob goes through an <mark o>intra-cloud path</mark> — data is already in AWS, staged to Azure Blob, then ingested by Migration Manager. No public internet bandwidth involved.</p>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-phase">Step 1</div>
+      <div class="tl-title">Collection preparation script</div>
+      <div class="tl-body">A preparation script filters test and admin profiles, verifies that all users have an Entra ID account and an assigned M365 license (via App Registration Graph API call), and generates the FastTrack and Purview CSV files. Only technically verified users enter the migration pipeline. The SQL database maps which migration server handles which agency — batches are balanced by data volume for predictable processing times.</div>
+    </div>
+    <div class="tl-item phase-purview">
+      <div class="tl-phase">Step 2</div>
+      <div class="tl-title">AWS → Azure Blob staging (intra-cloud)</div>
+      <div class="tl-body">AzCopy transfers data from the CPM file server (AWS) to the Azure Blob Storage container used by Migration Manager. Intra-cloud path — no public bandwidth constraint. Blob storage cost applies during the staging window (~$0.018/GB/month LRS).</div>
+    </div>
+    <div class="tl-item phase-ok">
+      <div class="tl-phase">Step 3</div>
+      <div class="tl-title">FastTrack + Migration Manager → OneDrive</div>
+      <div class="tl-body">FastTrack engineers coordinate Migration Manager ingestion from Blob to OneDrive. FastTrack's value is maximum here: long path remediation, naming conflict resolution, per-user completion reports. FastTrack does not cover the AWS → Blob extraction — that's project-owned.</div>
+    </div>
+    <div class="tl-item phase-warn">
+      <div class="tl-phase">KFM activation</div>
+      <div class="tl-title">All Known Folders → OneDrive, nothing in FSLogix</div>
+      <div class="tl-body">KFM Silent policy activates Desktop, Documents, Downloads, Videos, Pictures, Music. Activated via first-logon startup script on WorkSpaces. OneDrive must be running and authenticated before KFM triggers. FSLogix Profile Container contains only AppData\Roaming applicative data — zero Known Folder data.</div>
+    </div>
+  </div>
+
+  <h3>Migration Manager log correlation — the OneDrive scheduling challenge</h3>
+  <p>Correlating Migration Manager agent logs with schedules defined in the portal (which are associated with migration CSV files) is non-trivial. The agent logs do not carry the schedule ID explicitly. Best correlation strategies:</p>
+  <ul class="body-list">
+    <li><strong>UPN-based matching</strong>: Migration Manager logs trace source path and target OneDrive URL per task — the UPN is extractible and serves as the natural join key to the SQL schedule table</li>
+    <li><strong>CSV filename as fingerprint</strong>: backend generates CSV names with a unique token (<code>wave3_agencyB_20250412_a7f2.csv</code>) — agent logs sometimes reference the source file name</li>
+    <li><strong>Timestamp + UPN + volume</strong>: triple discriminant for cases where filename correlation fails — effective start time from agent log ± 5 min window around SQL <code>scheduled_at</code>, with data volume as tiebreaker</li>
+  </ul>
+</section>
+
+<!-- 10. SUPPORT WINDOWS + SCCM -->
+<section>
+  <h2><span class="num">10</span> Windows version support &amp; SCCM — structural gaps</h2>
+
+  <h3>AWS WorkSpaces — AMI cycle lag</h3>
+  <p>New Windows versions on WorkSpaces are gated by Amazon releasing a new WorkSpaces AMI. This cycle is structurally behind Microsoft's release cadence. Windows 11 23H2 and 24H2 appeared on WorkSpaces several months after Microsoft GA — forcing production fleets to remain on builds approaching end of support. Feature updates require a WorkSpaces Bundle rebuild and manual VM migration; there is no WUfB integration.</p>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ Compliance implication</strong>
+    In environments subject to DORA, ISO 27001, or SOC2, documenting a Windows build on extended support due to AMI unavailability is an auditable non-conformity. AVD and Windows 365 make new Windows versions available in the Azure Compute Gallery within weeks of Microsoft GA. Citrix gives the admin full control — the image is updated when the admin decides.
+  </div>
+
+  <h3>SCCM with Distribution Points in AWS</h3>
+  <p>Application deployments and OS patches for WorkSpaces are delivered via SCCM, with <mark y>Distribution Points hosted within AWS</mark> on the same internal network as the WorkSpaces. Updates and software deployments are intra-AWS — no WAN dependency, no public bandwidth consumed. This is an architecturally clean match for a fully AWS-hosted fleet.</p>
+
+  <div class="callout callout-info">
+    <strong>💡 Bi-site SCCM considerations</strong>
+    With two active AWS sites, SCCM Boundary Groups must be defined per AWS site (subnet-based). Each site needs its own DP with replicated content — a WorkSpace that fails over to the secondary site during DRP should not pull updates from the primary site DP across the inter-VPC link. Content replication between the two site DPs must be part of the DRP runbook.
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Management capability</th>
+          <th class="h-aws">AWS WorkSpaces (current)</th>
+          <th class="h-ctx">Citrix DaaS</th>
+          <th class="h-avd">AVD</th>
+          <th class="h-w365">Windows 365</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>MDM enrollment</td>
+          <td class="bad">❌ Not possible</td>
+          <td class="warn">⚠ Partial</td>
+          <td class="ok">✓ Native Intune</td>
+          <td class="ok">✓ Native Intune</td>
+        </tr>
+        <tr>
+          <td>App deployment</td>
+          <td class="warn">SCCM (DP in AWS)</td>
+          <td class="warn">SCCM / App Layering</td>
+          <td class="ok">SCCM co-mgmt or Intune Win32</td>
+          <td class="ok">Intune Win32 native</td>
+        </tr>
+        <tr>
+          <td>OS updates</td>
+          <td class="warn">SCCM Software Updates</td>
+          <td class="warn">SCCM / WSUS</td>
+          <td class="ok">WUfB rings + SCCM co-mgmt</td>
+          <td class="ok">Windows Autopatch native</td>
+        </tr>
+        <tr>
+          <td>Thin client (W11) updates</td>
+          <td class="ok">Intune + Autopatch (provider tenant)</td>
+          <td class="neu">N/A</td>
+          <td class="ok">Intune + Autopatch</td>
+          <td class="ok">Intune + Autopatch</td>
+        </tr>
+        <tr>
+          <td>Device compliance CA signal</td>
+          <td class="bad">❌ (no Intune enrollment)</td>
+          <td class="warn">Via Citrix SPA</td>
+          <td class="ok">✓ Native Entra CA</td>
+          <td class="ok">✓ Native Entra CA</td>
+        </tr>
+        <tr>
+          <td>New Windows version availability</td>
+          <td class="bad">Months (AMI dependency)</td>
+          <td class="ok">Immediate (admin controls image)</td>
+          <td class="ok">Weeks (Azure Gallery)</td>
+          <td class="ok">Weeks (Microsoft managed)</td>
+        </tr>
+        <tr>
+          <td>IC3 push notifications (2025+)</td>
+          <td class="bad">❌</td>
+          <td class="bad">❌</td>
+          <td class="ok">✓ Roadmap</td>
+          <td class="ok">✓ Roadmap</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 11. BI-SITE + DRP + REGISTRATION CODE -->
+<section>
+  <h2><span class="num">11</span> Bi-site active-active DRP &amp; the Registration Code problem</h2>
+
+  <p>The 8,000 WorkSpaces are distributed across <mark>two active AWS sites</mark>. Each site serves its assigned population in normal operations. In a DRP scenario, half the VMs fail over to the surviving site. This is technically sound — but it exposes a WorkSpaces-specific constraint that can paralyze a DRP in minutes: the <strong>Registration Code</strong>.</p>
+
+  <h3>What is a Registration Code?</h3>
+  <p>Before the SAML authentication flow even begins, the AWS WorkSpaces client requires a <mark o>Registration Code</mark> — a unique identifier pointing to a specific AWS Directory in a specific region. This code is stable under normal operations and users never see it once configured. During a DRP failover, WorkSpaces are reassigned to a different Directory — the Registration Code changes. The client on the agent's terminal still points to the old code. <mark r>The connection fails silently</mark>. The agent calls the helpdesk: "I can't open my desktop."</p>
+
+  <div class="callout callout-bad">
+    <strong>🚨 DRP without preparation</strong>
+    On 4,000 users failing over simultaneously, if each one needs to call the helpdesk for a new Registration Code — at exactly the moment the helpdesk is already under DRP pressure — the operational impact is catastrophic. A technically successful DRP becomes a user-experience disaster.
+  </div>
+
+  <h3>The solution — AWS Lambda for secure Registration Code distribution</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-phase">Architecture</div>
+      <div class="tl-title">API Gateway + Lambda + DynamoDB</div>
+      <div class="tl-body">An HTTPS endpoint (API Gateway) is exposed publicly. The Lambda receives a request with the user's Entra ID UPN, queries a DynamoDB table mapping each user to their current Registration Code (updated during DRP failover), and returns the code securely.</div>
+    </div>
+    <div class="tl-item phase-ok">
+      <div class="tl-phase">Authentication</div>
+      <div class="tl-title">Entra ID OIDC/JWT authorizer</div>
+      <div class="tl-body">The API Gateway is protected by an Entra ID JWT authorizer. Only authenticated M365 users can call the API. The UPN is extracted from the JWT token — no impersonation possible. A user can only retrieve their own Registration Code.</div>
+    </div>
+    <div class="tl-item phase-purview">
+      <div class="tl-phase">DRP table update</div>
+      <div class="tl-title">EventBridge rule → sync Lambda</div>
+      <div class="tl-body">DRP failover triggers an EventBridge rule that calls a sync Lambda. This Lambda queries the AWS Directory Service for current Registration Codes on active Directories and updates DynamoDB. The table must be up-to-date before users start requesting their codes — test this pipeline in every DRP rehearsal.</div>
+    </div>
+    <div class="tl-item phase-ok">
+      <div class="tl-phase">User experience</div>
+      <div class="tl-title">Zero helpdesk calls for code retrieval</div>
+      <div class="tl-body">Automated notification (Exchange Online email, Teams message, or SMS via SNS) sent to affected users with a link to the self-service portal. User authenticates with M365 account → Registration Code displayed → copied into WorkSpaces client → session resumed. Zero helpdesk calls for this failure mode.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <strong>💡 On AVD — no equivalent concept</strong>
+    The Windows App (formerly Remote Desktop client) connects to the generic URL <code>rdweb.wvd.microsoft.com</code>. Available Host Pools and Application Groups are resolved dynamically from Entra ID. In a DRP failover to another Host Pool or Azure region, the user simply reconnects — their desktop appears. Zero code to distribute, zero client reconfiguration.
+  </div>
+</section>
+
+<!-- 12. AZURE MIGRATION BACKEND -->
+<section>
+  <h2><span class="num">12</span> Azure migration backend — the full architecture</h2>
+
+  <p>Migrating 8,000 users across 1,600 branches cannot be orchestrated manually. The backend is a purpose-built Azure platform: SQL referential, PowerShell orchestration, Purview GUI, Key Vault, CIS-hardened migration VMs, Log Analytics, and Power BI. Every component follows a <mark y>least-privilege App Registration architecture</mark> — dedicated App Reg per service, strict rights segregation, no shared credentials.</p>
+
+  <div class="grid3">
+    <div class="grid-card" style="border-top:2px solid var(--accent)">
+      <div class="gc-tag" style="color:var(--accent)">Referential</div>
+      <div class="gc-title">Azure SQL Database</div>
+      <div class="gc-body">Migration status per user · waves · workstreams · run history · PST inventory</div>
+    </div>
+    <div class="grid-card" style="border-top:2px solid var(--warn)">
+      <div class="gc-tag" style="color:var(--warn)">Orchestration</div>
+      <div class="gc-title">Azure Automation / Functions</div>
+      <div class="gc-body">PowerShell Runbooks · wave scheduling · retry logic · Teams notifications</div>
+    </div>
+    <div class="grid-card" style="border-top:2px solid var(--accent3)">
+      <div class="gc-tag" style="color:var(--accent3)">Security</div>
+      <div class="gc-title">Azure Key Vault</div>
+      <div class="gc-body">Blob SAS tokens (24–48h TTL) · App Registration secrets · Managed Identity access</div>
+    </div>
+    <div class="grid-card" style="border-top:2px solid #c084fc">
+      <div class="gc-tag" style="color:#c084fc">Staging</div>
+      <div class="gc-title">Blob Storage Azure</div>
+      <div class="gc-body">PST staging · CPM profile exports · Purview Import CSV mapping files</div>
+    </div>
+    <div class="grid-card" style="border-top:2px solid var(--citrix)">
+      <div class="gc-tag" style="color:var(--citrix)">Observability</div>
+      <div class="gc-title">Log Analytics</div>
+      <div class="gc-body">Orchestration logs · FastTrack agents · Purview operations · CIS security events</div>
+    </div>
+    <div class="grid-card" style="border-top:2px solid #f2c811">
+      <div class="gc-tag" style="color:#f2c811">Visualization</div>
+      <div class="gc-title">Power BI</div>
+      <div class="gc-body">Real-time wave progress · success rates · SLA per branch · cross-log correlation</div>
+    </div>
+  </div>
+
+  <h3>SQL schema — the single source of truth</h3>
+  <div class="code-block">
+    <span class="cm">-- Core tables</span><br>
+    <span class="ck">Users</span>          (upn, display_name, site_aws, workspace_id, wave_id, batch_date, reg_code_drp)<br>
+    <span class="ck">MigrationStatus</span> (upn, workstream, status, started_at, completed_at, error_msg, retry_count)<br>
+    <span class="cm">  -- workstream: CPM_PROFILE | OST_REDIRECT | EXCHANGE | ONEDRIVE | PST_PURVIEW</span><br>
+    <span class="cm">  -- status:    PENDING | IN_PROGRESS | SUCCESS | FAILED | SKIPPED | RETRY</span><br>
+    <span class="ck">Waves</span>          (wave_id, wave_name, scheduled_date, site_aws, agency_scope, user_count)<br>
+    <span class="ck">MigrationServers</span>(server_id, agency_id, data_volume_gb, assigned_wave)<br>
+    <span class="ck">RunHistory</span>     (run_id, upn, workstream, script_name, duration_s, exit_code, log_url)<br>
+    <span class="ck">PSTInventory</span>   (upn, pst_filename, size_mb, blob_path, items_source, items_target, verified_at, deletable)
+  </div>
+
+  <h3>PowerShell orchestration pipeline</h3>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-phase">Step 1</div>
+      <div class="tl-title">CPM profile collection → Azure Blob</div>
+      <div class="tl-body">Mounts CPM share, extracts signatures + NTUSER.DAT registry + Chrome data if available. Uploads to wave Blob container. SAS token retrieved from Key Vault via Managed Identity — never hardcoded. SQL status → <code>CPM_PROFILE: IN_PROGRESS</code>.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-phase">Step 2</div>
+      <div class="tl-title">Profile restore → target WorkSpace</div>
+      <div class="tl-body">Connects to WorkSpace via AWS Systems Manager Run Command. Restores from Blob: Outlook signatures, registry import (Office settings, Outlook profile), Chrome bookmarks if present. SQL → <code>SUCCESS</code> or <code>FAILED</code> with captured error message.</div>
+    </div>
+    <div class="tl-item phase-purview">
+      <div class="tl-phase">Step 3</div>
+      <div class="tl-title">OST redirect + OneDrive KFM activation</div>
+      <div class="tl-body">Sets <code>ForceOSTPath → D:\Outlook</code> via registry. Activates KFM Silent via OneDrive registry policy. Polls <code>Get-ODStatus</code> with configurable timeout to confirm OneDrive sync is running before proceeding — prevents KFM activation before OneDrive is ready.</div>
+    </div>
+    <div class="tl-item phase-ok">
+      <div class="tl-phase">Step 4</div>
+      <div class="tl-title">Exchange Online validation</div>
+      <div class="tl-body">Graph API call to verify mailbox is on Exchange Online. If still on-prem: <code>EXCHANGE → SKIPPED</code> with re-process flag. License and Entra ID account verified via dedicated App Registration before this step — only technically ready users enter the pipeline.</div>
+    </div>
+    <div class="tl-item phase-warn">
+      <div class="tl-phase">Error handling</div>
+      <div class="tl-title">Retry + Teams alert + continue</div>
+      <div class="tl-body">3 retries per step by default. After exhaustion: <code>FAILED</code> + Log Analytics alert → Teams channel notification to project lead. Pipeline moves to next user — individual failures do not block the wave.</div>
+    </div>
+  </div>
+
+  <h3>PowerShell WinForms GUI — guided Purview PST import</h3>
+  <p>PST import via Purview is a sensitive, multi-step operation. Rather than a fully automated pipeline (risk of deleting source PSTs before validation), a <mark>WinForms/WPF PowerShell GUI</mark> guides the technician through each step.</p>
+
+  <div class="flow" style="flex-wrap:wrap;gap:4px;">
+    <div class="fb fb-ok" style="min-width:95px;"><div class="fl">1</div><div class="fv" style="font-size:11px;">List PSTs in Blob</div></div>
+    <div class="fa">→</div>
+    <div class="fb fb-ok" style="min-width:95px;"><div class="fl">2</div><div class="fv" style="font-size:11px;">Download + MD5 check</div></div>
+    <div class="fa">→</div>
+    <div class="fb fb-warn" style="min-width:95px;"><div class="fl">3</div><div class="fv" style="font-size:11px;">Auto-generate CSV mapping</div></div>
+    <div class="fa">→</div>
+    <div class="fb fb-warn" style="min-width:95px;"><div class="fl">4</div><div class="fv" style="font-size:11px;">Open Purview portal</div></div>
+    <div class="fa">→</div>
+    <div class="fb fb-ok" style="min-width:95px;"><div class="fl">5</div><div class="fv" style="font-size:11px;">Notify backend → SQL IN_PROGRESS</div></div>
+    <div class="fa">→</div>
+    <div class="fb fb-ok" style="min-width:95px;"><div class="fl">6</div><div class="fv" style="font-size:11px;">Per-folder item comparison</div></div>
+  </div>
+
+  <ul class="body-list">
+    <li><strong>Dynamic Blob listing</strong>: PST files with size, associated user, SQL status (PENDING / IN_PROGRESS / VERIFIED) — SAS token retrieved from Key Vault at GUI launch</li>
+    <li><strong>MD5 integrity check</strong>: AzCopy download + hash verification before Purview submission — corrupted PSTs detected before ingestion</li>
+    <li><strong>Auto-generated CSV mapping</strong>: GUI builds the Purview Import mapping file (Workload, FilePath, Mailbox, IsArchive, TargetRootFolder) from SQL data — technician fills in nothing manually</li>
+    <li><strong>Backend notification</strong>: technician confirms import launched → Azure Function → SQL <code>PST_PURVIEW: IN_PROGRESS</code> + timestamp</li>
+    <li><strong>Per-folder comparison</strong>: Graph API <code>Get-MailboxFolderStatistics</code> on Online Archive vs Aspose.Email item count from source PST. Visual delta display: green (&lt;1%), orange (1–5%), red (&gt;5%). Validate button locked until within tolerance.</li>
+  </ul>
+
+  <div class="callout callout-purview">
+    <strong>🔷 The safeguard against premature deletion</strong>
+    The Validate action in the GUI is the only trigger that sets <code>PSTInventory.deletable = true</code> in SQL. Source PSTs in Blob are never deleted automatically. A weekly cleanup Runbook processes PSTs validated more than 30 days ago. No PST disappears without explicit human validation in the GUI.
+  </div>
+
+  <h3>CIS-hardened migration VMs — FastTrack agent hosting</h3>
+  <p>SPMT and Migration Manager agents run on dedicated Azure VMs hardened to <mark>CIS Benchmark Level 1 (Windows Server 2022)</mark>. These VMs handle sensitive personal data (emails, files, PSTs) and hold access to Blob SAS tokens and Exchange credentials.</p>
+  <ul class="body-list">
+    <li>CIS L1: unnecessary services disabled, SMB signing enforced, Defender + ASR rules, full audit logging</li>
+    <li>Dedicated service accounts with least-privilege — no Domain Admin, no access outside migration scope</li>
+    <li>No direct internet access — Azure Firewall with allowlist of required M365 and AWS endpoints</li>
+    <li>Admin access via Azure Bastion only — no exposed RDP port, full session auditability</li>
+  </ul>
+
+  <h3>Log Analytics — four converging streams</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Source</th><th>Ingestion</th><th>Table</th><th>Primary use</th></tr></thead>
+      <tbody>
+        <tr><td>PS orchestration scripts</td><td>REST API (DCE endpoint)</td><td><code>MigrationOrchestration_CL</code></td><td class="ok">Per-user/workstream status, durations, exit codes</td></tr>
+        <tr><td>SPMT / Migration Manager agents</td><td>AMA agent on migration VMs → DCR</td><td><code>SPMTAgent_CL</code></td><td class="ok">File transfer status, errors, throughput</td></tr>
+        <tr><td>Purview GUI (WinForms)</td><td>Azure Function on each step</td><td><code>PurviewImport_CL</code></td><td class="ok">Step timestamps, item deltas, technician validations</td></tr>
+        <tr><td>Migration VMs (OS + security)</td><td>AMA + Security Events DCR</td><td><code>SecurityEvent</code>, <code>Sysmon</code></td><td class="warn">CIS compliance audit, anomaly detection</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="code-block">
+    <span class="cm">// KQL — correlate Exchange migration + PST import per user (24h window)</span><br><br>
+    MigrationOrchestration_CL<br>
+    | where TimeGenerated > ago(24h) and workstream_s in ("EXCHANGE","PST_PURVIEW")<br>
+    | join kind=leftouter (<br>
+    &nbsp;&nbsp;PurviewImport_CL | project upn_s, delta_pct_d, verified_at_t, folder_mismatches_d<br>
+    ) on $left.upn_s == $right.upn_s<br>
+    | project TimeGenerated, upn_s, workstream_s, status_s, duration_s_d, delta_pct_d, verified_at_t<br>
+    | order by upn_s asc, TimeGenerated asc
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ FastTrack agent log parsing — non-standard format</strong>
+    SPMT and Migration Manager generate proprietary log formats (CSV + XML). Extraction to Log Analytics requires a PowerShell parsing script on migration VMs that transforms logs to JSON and pushes via the Log Analytics REST API. This parser must be revalidated on every FastTrack agent update — Microsoft occasionally changes log formats without documentation notice.
+  </div>
+
+  <h3>Power BI — composite model</h3>
+  <p>Power BI connects to both sources as a composite model: <mark>DirectQuery on Log Analytics</mark> (real-time KQL freshness) + <mark>scheduled Import from SQL Azure</mark> (referential depth). Two dashboard levels:</p>
+  <ul class="body-list">
+    <li><strong>Operational IT dashboard</strong>: live wave progress, per-workstream success rate, active failures with Log Analytics deep-link, migration VM health (SPMT agent CPU/memory), PST queue per Purview technician</li>
+    <li><strong>Executive dashboard</strong>: % fleet migrated, branches completed, SLA by region/AWS site, progress vs plan curve, open incidents by category</li>
+  </ul>
+
+  <blockquote>"The Azure migration backend is what transforms an 'Excel + email' project into an industrial operation. Real-time Power BI visibility detected a SPMT performance issue on site B during the second wave — before it became a planning delay."</blockquote>
+</section>
+
+<!-- 13. SCORES -->
+<section>
+  <h2><span class="num">13</span> Comparative scoring — 1,600 branch field perspective</h2>
+  <div class="score-grid">
+
+    <div class="score-card">
+      <div class="score-label">Overall TCO</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:48%;background:var(--aws)"></div></div><span class="score-val">2.4</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:44%;background:var(--citrix)"></div></div><span class="score-val">2.2</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:80%;background:var(--avd)"></div></div><span class="score-val">4.0</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:76%;background:var(--w365)"></div></div><span class="score-val">3.8</span></div>
+    </div>
+
+    <div class="score-card">
+      <div class="score-label">Identity & Zero Trust</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:40%;background:var(--aws)"></div></div><span class="score-val">2.0</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:76%;background:var(--citrix)"></div></div><span class="score-val">3.8</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:94%;background:var(--avd)"></div></div><span class="score-val">4.7</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:94%;background:var(--w365)"></div></div><span class="score-val">4.7</span></div>
+    </div>
+
+    <div class="score-card">
+      <div class="score-label">Branch segregation (1,600 sites)</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:20%;background:var(--aws)"></div></div><span class="score-val">1.0</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:90%;background:var(--citrix)"></div></div><span class="score-val">4.5</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:90%;background:var(--avd)"></div></div><span class="score-val">4.5</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:86%;background:var(--w365)"></div></div><span class="score-val">4.3</span></div>
+    </div>
+
+    <div class="score-card">
+      <div class="score-label">Profile management</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:52%;background:var(--aws)"></div></div><span class="score-val">2.6</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:94%;background:var(--citrix)"></div></div><span class="score-val">4.7</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:80%;background:var(--avd)"></div></div><span class="score-val">4.0</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:94%;background:var(--w365)"></div></div><span class="score-val">4.7</span></div>
+    </div>
+
+    <div class="score-card">
+      <div class="score-label">Branch printing</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:44%;background:var(--aws)"></div></div><span class="score-val">2.2</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:100%;background:var(--citrix)"></div></div><span class="score-val">5.0</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:62%;background:var(--avd)"></div></div><span class="score-val">3.1</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:62%;background:var(--w365)"></div></div><span class="score-val">3.1</span></div>
+    </div>
+
+    <div class="score-card">
+      <div class="score-label">Teams / collaboration quality</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:60%;background:var(--aws)"></div></div><span class="score-val">3.0*</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:64%;background:var(--citrix)"></div></div><span class="score-val">3.2</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:84%;background:var(--avd)"></div></div><span class="score-val">4.2</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:84%;background:var(--w365)"></div></div><span class="score-val">4.2</span></div>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;margin-top:-8px;margin-bottom:16px;">* VDI2/Slimcore GA Feb 2026 — real-world at-scale efficiency still being validated (TAP)</p>
+
+    <div class="score-card">
+      <div class="score-label">Exchange / OneDrive / PST migration</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:34%;background:var(--aws)"></div></div><span class="score-val">1.7</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:54%;background:var(--citrix)"></div></div><span class="score-val">2.7</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:94%;background:var(--avd)"></div></div><span class="score-val">4.7</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:94%;background:var(--w365)"></div></div><span class="score-val">4.7</span></div>
+    </div>
+
+    <div class="score-card">
+      <div class="score-label">DRP / continuity</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:42%;background:var(--aws)"></div></div><span class="score-val">2.1</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:76%;background:var(--citrix)"></div></div><span class="score-val">3.8</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:86%;background:var(--avd)"></div></div><span class="score-val">4.3</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:80%;background:var(--w365)"></div></div><span class="score-val">4.0</span></div>
+    </div>
+
+    <div class="score-card">
+      <div class="score-label">Endpoint management / SCCM-Intune</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:36%;background:var(--aws)"></div></div><span class="score-val">1.8</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:54%;background:var(--citrix)"></div></div><span class="score-val">2.7</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:90%;background:var(--avd)"></div></div><span class="score-val">4.5</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:100%;background:var(--w365)"></div></div><span class="score-val">5.0</span></div>
+    </div>
+
+    <div class="score-card">
+      <div class="score-label">Windows version agility</div>
+      <div class="score-row"><span class="score-name" style="color:var(--aws)">AWS WS</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:22%;background:var(--aws)"></div></div><span class="score-val">1.1</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--citrix)">Citrix</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:94%;background:var(--citrix)"></div></div><span class="score-val">4.7</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--avd)">AVD</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:80%;background:var(--avd)"></div></div><span class="score-val">4.0</span></div>
+      <div class="score-row"><span class="score-name" style="color:var(--w365)">W365</span><div class="score-bar-bg"><div class="score-bar-fill" style="width:72%;background:var(--w365)"></div></div><span class="score-val">3.6</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 14. VERDICTS -->
+<section>
+  <h2><span class="num">14</span> Verdicts &amp; contextual recommendations</h2>
+
+  <div class="verdict-block">
+    <div class="verdict-card v-aws">
+      <div class="vtag">AWS WorkSpaces — current deployment</div>
+      <div class="vsol">Chosen platform · managed debt</div>
+      <div class="vbody">Selected as the target platform due to an existing multi-million AWS financial commitment — exiting the contract early was not economically viable. The technical gaps are real but manageable: custom Lambda for DRP Registration Code distribution, SCCM DPs in AWS for deployment, dedicated print network eliminating VDI contention, and a purpose-built Azure migration backend compensating for the lack of native Intune tooling. The structural limitations (no Teams offloading, AMI lag, no Intune enrollment) are known and monitored.</div>
+    </div>
+    <div class="verdict-card v-ctx">
+      <div class="vtag">Citrix DaaS</div>
+      <div class="vsol">The mature enterprise standard</div>
+      <div class="vbody">Still the most complete solution on advanced features: Universal Print (CUP), Profile Management (CPM), native USB redirection (HDX), session recording, granular DLP. Justified for GPU workloads, complex multi-cloud environments, and organizations with large concurrent user ratios. High TCO and operational complexity are justified at scale. Post-acquisition roadmap (Cloud Software Group) warrants monitoring.</div>
+    </div>
+    <div class="verdict-card v-avd">
+      <div class="vtag">Azure Virtual Desktop</div>
+      <div class="vsol">Best overall value</div>
+      <div class="vbody">The optimal platform for Microsoft-centric organizations migrating from Citrix. Native Intune, Entra ID SSO without App Registration proliferation, FSLogix included, WUfB, Scaling Plans, Windows Multi-Session for density economics, Teams Media Optimization, Universal Print. The IC3/IME trajectory positions it as the most modern VDI platform at 2026 horizon. Recommended for knowledge worker populations.</div>
+    </div>
+    <div class="verdict-card v-w365">
+      <div class="vtag">Windows 365</div>
+      <div class="vsol">Maximum operational simplicity</div>
+      <div class="vbody">Ideal for branch agents, frontline workers, and subsidiaries without dedicated IT expertise. Fixed cost, zero infrastructure to manage, Intune as the single control plane, transparent Exchange/OneDrive migration. The "branch agent" profile — fixed location, business applications, 8h/day — maps perfectly to the Cloud PC model. Natural complement to AVD on the same tenant with a unified Intune control plane.</div>
+    </div>
+  </div>
+
+  <div class="callout callout-ok" style="margin-top:24px">
+    <strong>✅ Greenfield recommendation — 8,000 users · 1,600 branches · full Microsoft stack</strong>
+    Without the AWS financial constraint: <strong>AVD</strong> (knowledge workers, multi-application sessions, density needs) + <strong>Windows 365 Frontline</strong> (branch agents, fixed profile). Exchange Online via Hybrid Configuration Wizard. FastTrack for OneDrive onboarding + full KFM. PST import via Purview — intra-Azure, zero transfer cost. Universal Print for branch printing (lightweight on-premises connector). Single control plane: Microsoft Intune. Single identity: Entra ID with Conditional Access — zero VDI-specific App Registrations.
+  </div>
+</section>
+
+<div class="footer">
+  <span>// Endpoint & VDI Architecture · M365 Migration · 2025</span>
+  <span>#AVD #AWSWorkSpaces #Citrix #Windows365 #ExchangeOnline #OneDrive #Purview #Teams #Intune #EntraID #Zscaler #SCCM</span>
+</div>
+
+</body>
+</html>
