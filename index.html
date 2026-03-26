@@ -353,6 +353,51 @@
     font-size: 18px;
   }
 
+  /* ── ARTICLE CARDS ── */
+  .article-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: transform .2s, border-color .2s, box-shadow .2s;
+  }
+  .article-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--accent);
+    box-shadow: 0 8px 32px rgba(79,142,255,.1);
+  }
+  a:has(.article-card:hover) .article-card { border-color: var(--accent); }
+  .article-top {
+    height: 3px; border-top: 3px solid;
+  }
+  .article-inner { padding: 24px 28px; }
+  .article-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .article-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(17px, 2.5vw, 22px);
+    font-weight: 700; color: #fff;
+    margin-bottom: 10px; line-height: 1.3;
+  }
+  .article-desc {
+    font-size: 14px; color: var(--muted);
+    line-height: 1.65; margin-bottom: 16px;
+  }
+  .article-stats {
+    display: flex; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .article-stats span {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--muted);
+    letter-spacing: .04em;
+  }
+  .article-stats span::before { content: '// '; color: var(--border); }
+  .article-cta {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    color: var(--accent); letter-spacing: .04em;
+  }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 520px) {
     .cta-row { flex-direction: column; align-items: flex-start; }
@@ -428,127 +473,85 @@
     <div class="scroll-hint">scroll to explore</div>
   </section>
 
-  <!-- PLATFORMS -->
+  <!-- ARTICLES -->
   <section class="section">
-    <div class="section-tag">// Platform verdicts</div>
-    <h2>Four platforms. One constrained choice.</h2>
-    <p style="color:var(--muted);max-width:600px;">
-      The article covers all four platforms in depth — architecture, TCO, identity, profiles, printing, Teams, DRP, and endpoint management. Here's the field verdict for each.
+    <div class="section-tag">// Published articles</div>
+    <h2>Technical field reports — no vendor filter</h2>
+    <p style="color:var(--muted);max-width:600px;margin-bottom:28px;">
+      Production deployments, incident analysis, and architecture deep-dives. Every article is written from real operational experience.
     </p>
 
-    <div class="platform-grid">
-      <div class="platform-card pc-aws">
-        <div class="pc-name">AWS WorkSpaces</div>
-        <div class="pc-verdict">Chosen due to a multi-million AWS financial commitment. Technical gaps compensated by custom tooling. Teams VDI2 offloading now GA — we participated in the TAP.</div>
+    <!-- Article 1 — VDI -->
+    <a href="vdi-comparison-linkedin-en.html" style="text-decoration:none;display:block;margin-bottom:20px;">
+      <div class="article-card">
+        <div class="article-top" style="border-color:var(--accent)"></div>
+        <div class="article-inner">
+          <div class="article-meta">
+            <span class="badge badge-blue">VDI Architecture</span>
+            <span class="badge badge-orange">Production · 8,000 users</span>
+            <span class="badge badge-green">Teams VDI2 TAP</span>
+            <span class="badge badge-muted">2025 · Q2</span>
+          </div>
+          <h3 class="article-title">VDI at Scale 2025 — AWS WorkSpaces vs Citrix vs AVD vs Windows 365</h3>
+          <p class="article-desc">
+            An unfiltered field report on deploying VDI at scale: 8,000 users, 1,600 branches, 60 TB of PST files, dual identity architecture on a provider tenant, AWS financial lock-in, Azure migration backend, DRP Registration Code Lambda, and Teams VDI2 offloading as a TAP participant.
+          </p>
+          <div class="article-stats">
+            <span>8,000 WorkSpaces</span>
+            <span>1,600 branches</span>
+            <span>60 TB PST</span>
+            <span>14 sections</span>
+          </div>
+          <div class="article-cta">
+            Read the full article
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
       </div>
-      <div class="platform-card pc-ctx">
-        <div class="pc-name">Citrix DaaS</div>
-        <div class="pc-verdict">The most mature platform on printing (CUP), profiles (CPM), and USB redirection (HDX). High TCO justified at scale. Roadmap post-CSG acquisition to monitor.</div>
-      </div>
-      <div class="platform-card pc-avd">
-        <div class="pc-name">Azure Virtual Desktop</div>
-        <div class="pc-verdict">Best overall value for Microsoft-centric organizations. Native Intune, Entra ID SSO, FSLogix included, Teams offloading, Universal Print. Best platform trajectory at 2026 horizon.</div>
-      </div>
-      <div class="platform-card pc-w365">
-        <div class="pc-name">Windows 365</div>
-        <div class="pc-verdict">Maximum operational simplicity. Fixed cost, Intune as single control plane, transparent Exchange/OneDrive migration. Perfect for branch agent profiles.</div>
-      </div>
-    </div>
-  </section>
+    </a>
 
-  <!-- WHAT'S COVERED -->
-  <section class="section">
-    <div class="section-tag">// What's in the article</div>
-    <h2>14 sections. No vendor filter.</h2>
-
-    <div class="topic-grid">
-      <div class="topic-item">
-        <span class="topic-icon">💰</span>
-        <div>
-          <div class="topic-title">The financial lock-in nobody documents</div>
-          <div class="topic-desc">Why the AWS contract made WorkSpaces the only economically viable choice — regardless of technical merit.</div>
+    <!-- Article 2 — Stryker -->
+    <a href="stryker-intune-attack.html" style="text-decoration:none;display:block;">
+      <div class="article-card">
+        <div class="article-top" style="border-color:var(--accent2)"></div>
+        <div class="article-inner">
+          <div class="article-meta">
+            <span class="badge badge-red">🚨 Incident · 11 mars 2026</span>
+            <span class="badge badge-orange">Endpoint Security</span>
+            <span class="badge badge-muted">Microsoft Sentinel · KQL</span>
+          </div>
+          <h3 class="article-title">When Intune Becomes a Weapon — The Stryker Attack and What It Changes</h3>
+          <p class="article-desc">
+            80,000–200,000 devices wiped. 50 TB exfiltrated. Zero malware. Just Microsoft Intune — their own tool. Full anatomy of the AiTM attack, concrete action plan, 4 production-ready Sentinel KQL rules, and a SOAR Logic App playbook to disable a compromised account in under 60 seconds.
+          </p>
+          <div class="article-stats">
+            <span>4 règles KQL</span>
+            <span>Playbook SOAR</span>
+            <span>Checklist 9 contrôles</span>
+            <span>Multi-Admin Approval</span>
+          </div>
+          <div class="article-cta" style="color:var(--accent2)">
+            Read the article
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
         </div>
       </div>
-      <div class="topic-item">
-        <span class="topic-icon">🪪</span>
-        <div>
-          <div class="topic-title">Dual identity — two tenants, one user</div>
-          <div class="topic-desc">W11 thin client on provider Intune tenant ≠ WorkSpace on org AD + Entra ID SAML. How this shapes the entire architecture.</div>
-        </div>
-      </div>
-      <div class="topic-item">
-        <span class="topic-icon">🔵</span>
-        <div>
-          <div class="topic-title">Zscaler split tunnel recommendations</div>
-          <div class="topic-desc">What should bypass ZIA on the thin client and on the VDI — with a detailed table per flow type.</div>
-        </div>
-      </div>
-      <div class="topic-item">
-        <span class="topic-icon">🎯</span>
-        <div>
-          <div class="topic-title">Teams VDI2 / Slimcore — GA + TAP caveats <span class="new-badge">GA FEB 2026</span></div>
-          <div class="topic-desc">We participated in the TAP. The architecture is sound — but Zscaler CDN bypass, version drift, and thin client hardware floor are still open questions at 8,000 users.</div>
-        </div>
-      </div>
-      <div class="topic-item">
-        <span class="topic-icon">⚡</span>
-        <div>
-          <div class="topic-title">DRP Registration Code — the Lambda solution</div>
-          <div class="topic-desc">In a WorkSpaces DRP failover, the Registration Code changes. We built a Lambda + DynamoDB + Entra ID JWT authorizer to eliminate 4,000 helpdesk calls.</div>
-        </div>
-      </div>
-      <div class="topic-item">
-        <span class="topic-icon">📁</span>
-        <div>
-          <div class="topic-title">CPM profile migration — cold extraction</div>
-          <div class="topic-desc">Roaming profiles on file server: no VHDx to mount, direct SMB access. NTUSER.DAT cold hive loading. All Known Folders → OneDrive, zero in FSLogix.</div>
-        </div>
-      </div>
-      <div class="topic-item">
-        <span class="topic-icon">🗂️</span>
-        <div>
-          <div class="topic-title">60 TB PST pipeline — Purview Import</div>
-          <div class="topic-desc">Aspose.Email per-folder item comparison, macro signing on-the-fly with enterprise code signing cert, 15-day read-only window, corrupted PST quarantine + remediation.</div>
-        </div>
-      </div>
-      <div class="topic-item">
-        <span class="topic-icon">🏗️</span>
-        <div>
-          <div class="topic-title">Azure migration backend — full architecture</div>
-          <div class="topic-desc">SQL + Automation + Key Vault + Blob + Log Analytics + Power BI. Least-privilege App Reg per service. WinForms Purview GUI. KQL correlation queries.</div>
-        </div>
-      </div>
-      <div class="topic-item">
-        <span class="topic-icon">🔒</span>
-        <div>
-          <div class="topic-title">CIS XML parser → GPO generation</div>
-          <div class="topic-desc">PowerShell XML parser extracting CIS benchmark recommendations and injecting them into GPOs by product (Windows / Office / Edge / Chrome) with loopback on VDI OU.</div>
-        </div>
-      </div>
-      <div class="topic-item">
-        <span class="topic-icon">🖨️</span>
-        <div>
-          <div class="topic-title">Print architecture — dedicated network</div>
-          <div class="topic-desc">Print servers on AWS VMs, local branch printers, dedicated print network separate from VDI user traffic. No session quality impact. Migration path to Universal Print.</div>
-        </div>
-      </div>
-    </div>
+    </a>
   </section>
 
   <!-- HIGHLIGHT -->
   <section class="section">
     <div class="highlight">
       <p>"WorkSpaces got Teams VDI2/Slimcore before AVD and Citrix finish migrating away from legacy WebRTC. The platform race is more open than the benchmarks suggest."</p>
-      <div class="highlight-source">// From the article · Teams VDI2 TAP participant · Feb 2026</div>
+      <div class="highlight-source">// From the VDI article · Teams VDI2 TAP participant · Feb 2026</div>
     </div>
-
-    <div class="cta-row">
-      <a class="btn-primary" href="vdi-comparison-linkedin-en.html">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-          <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        Read the full article
-      </a>
+    <div class="highlight" style="border-left-color:var(--accent2);margin-top:16px;">
+      <p>"The Stryker attack is not a technological curiosity. Endpoint management tools have become a critical attack surface — on par with VPNs and Active Directory. The gap is in the configuration."</p>
+      <div class="highlight-source">// From the Stryker article · Endpoint Security · March 2026</div>
     </div>
   </section>
 
