@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>When Intune Becomes a Weapon — The Stryker Attack and What It Changes for M365 Admins</title>
+<meta name="description" content="Full anatomy of the Stryker attack: 80,000–200,000 devices wiped via Intune, AiTM phishing, token hijacking, 50 TB exfiltrated. Action plan, Sentinel KQL rules, and SOAR playbook.">
+<meta name="author" content="AL Conseil">
+<meta property="og:type" content="article">
+<meta property="og:title" content="When Intune Becomes a Weapon — The Stryker Attack">
+<meta property="og:description" content="80,000–200,000 devices wiped. 50 TB exfiltrated. Zero malware. Just Microsoft Intune. Full anatomy, Sentinel KQL rules, and SOAR playbook.">
+<meta property="og:url" content="https://alconseil.github.io/Linkedin/stryker-intune-attack.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://alconseil.github.io/Linkedin/stryker-intune-attack.html">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0a0a0f;
+    --bg2:     #111118;
+    --bg3:     #17171f;
+    --border:  #2a2a38;
+    --accent:  #4f8eff;
+    --accent2: #ff4f7b;
+    --accent3: #4fffb0;
+    --warn:    #ffb74f;
+    --text:    #e8e8f0;
+    --muted:   #7a7a9a;
+    --red:     #ff4f7b;
+    --orange:  #ffb74f;
+    --green:   #4fffb0;
+    --blue:    #4f8eff;
+    --purple:  #c084fc;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* ── NAV ── */
+  .top-nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    margin: 0 -24px 0;
+    padding: 13px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-home {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    color: var(--muted); text-decoration: none;
+    transition: color .2s;
+  }
+  .nav-home:hover { color: var(--text); }
+  .nav-back {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    color: var(--accent); text-decoration: none;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .nav-back:hover { opacity: .8; }
+
+  /* ── HERO ── */
+  .hero {
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--red);
+    background: var(--bg2);
+    padding: 40px 40px 32px;
+    margin: 32px 0 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; top: -80px; right: -80px;
+    width: 320px; height: 320px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,79,123,.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: .12em; color: var(--red);
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(22px,4vw,36px);
+    font-weight: 800; line-height: 1.15; color: #fff;
+    margin-bottom: 18px;
+  }
+  h1 span { color: var(--red); }
+  .hero-sub {
+    font-size: 15px; color: var(--muted);
+    font-weight: 300; max-width: 680px; line-height: 1.65;
+    margin-bottom: 28px;
+  }
+  .hero-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    padding: 5px 12px; border-radius: 2px; letter-spacing: .06em;
+  }
+  .badge-red    { background: rgba(255,79,123,.12);  color: var(--red);    border: 1px solid rgba(255,79,123,.3); }
+  .badge-orange { background: rgba(255,183,79,.12);  color: var(--orange); border: 1px solid rgba(255,183,79,.3); }
+  .badge-green  { background: rgba(79,255,176,.10);  color: var(--green);  border: 1px solid rgba(79,255,176,.25); }
+  .badge-blue   { background: rgba(79,142,255,.12);  color: var(--blue);   border: 1px solid rgba(79,142,255,.3); }
+  .badge-muted  { background: rgba(255,255,255,.04); color: var(--muted);  border: 1px solid var(--border); }
+
+  /* ── STAT PILLS ── */
+  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 28px 0; }
+  .stat-pill {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 14px 20px;
+    text-align: center; flex: 1; min-width: 110px;
+  }
+  .stat-pill .sv {
+    font-family: 'Syne', sans-serif; font-size: 24px;
+    font-weight: 800; display: block;
+  }
+  .stat-pill .sl {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin-top: 4px;
+  }
+
+  /* ── SECTIONS ── */
+  section { margin-bottom: 44px; }
+  h2 {
+    font-family: 'Syne', sans-serif; font-size: 19px;
+    font-weight: 700; color: #fff; margin-bottom: 18px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  h2 .num {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    color: var(--red); background: rgba(255,79,123,.1);
+    border: 1px solid rgba(255,79,123,.25);
+    padding: 2px 8px; border-radius: 2px;
+  }
+  h3 {
+    font-family: 'Syne', sans-serif; font-size: 15px;
+    font-weight: 600; color: var(--text); margin: 22px 0 10px;
+  }
+  p { margin-bottom: 12px; color: var(--text); }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-left: 3px solid; padding: 14px 18px;
+    margin: 20px 0; border-radius: 0 4px 4px 0; font-size: 14px;
+  }
+  .callout-bad    { border-color: var(--red);    background: rgba(255,79,123,.07);  }
+  .callout-warn   { border-color: var(--orange); background: rgba(255,183,79,.07);  }
+  .callout-info   { border-color: var(--blue);   background: rgba(79,142,255,.07);  }
+  .callout-ok     { border-color: var(--green);  background: rgba(79,255,176,.06);  }
+  .callout-purple { border-color: var(--purple); background: rgba(192,132,252,.07); }
+  .callout strong { display: block; margin-bottom: 4px; font-weight: 600; }
+  .callout-bad    strong { color: var(--red);    }
+  .callout-warn   strong { color: var(--orange); }
+  .callout-info   strong { color: var(--blue);   }
+  .callout-ok     strong { color: var(--green);  }
+  .callout-purple strong { color: var(--purple); }
+
+  /* ── ATTACK TIMELINE ── */
+  .timeline { margin: 24px 0; position: relative; padding-left: 28px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, var(--red), var(--orange), var(--blue));
+  }
+  .tl-item { position: relative; margin-bottom: 28px; }
+  .tl-item::before {
+    content: ''; position: absolute; left: -24px; top: 6px;
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--red); border: 2px solid var(--bg);
+  }
+  .tl-item.step2::before { background: var(--orange); }
+  .tl-item.step3::before { background: var(--purple); }
+  .tl-item.step4::before { background: var(--red); }
+  .tl-phase {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: var(--muted); margin-bottom: 3px;
+  }
+  .tl-title {
+    font-family: 'Syne', sans-serif; font-size: 15px;
+    font-weight: 600; color: #fff; margin-bottom: 6px;
+  }
+  .tl-body { font-size: 14px; color: var(--muted); line-height: 1.65; }
+  .tl-body code {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    background: var(--bg3); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 2px; color: var(--green);
+  }
+
+  /* ── TABLES ── */
+  .table-wrap { overflow-x: auto; margin: 20px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+  thead th {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 10px 14px; text-align: left;
+    border-bottom: 2px solid var(--border);
+    background: var(--bg3); color: var(--muted); white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); }
+  tbody tr:hover { background: rgba(255,255,255,.02); }
+  tbody td { padding: 9px 14px; vertical-align: top; font-size: 13px; }
+  tbody td:first-child { color: var(--text); font-weight: 500; }
+  .ok   { color: var(--green); }
+  .warn { color: var(--orange); }
+  .bad  { color: var(--red); }
+  .stars { color: var(--orange); letter-spacing: 2px; }
+
+  /* ── CODE BLOCKS ── */
+  .code-wrap { margin: 16px 0; position: relative; }
+  .code-label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); background: var(--bg3);
+    border: 1px solid var(--border); border-bottom: none;
+    padding: 6px 14px; border-radius: 4px 4px 0 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .code-dot { width: 8px; height: 8px; border-radius: 50%; }
+  pre {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 0 4px 4px 4px;
+    padding: 18px 20px; overflow-x: auto;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    line-height: 1.7; color: var(--green);
+    white-space: pre;
+  }
+  .code-wrap.has-label pre { border-radius: 0 4px 4px 4px; }
+  .cm { color: var(--muted); }
+  .ck { color: var(--purple); }
+  .cv { color: var(--orange); }
+  .cs { color: #86efac; }
+
+  /* ── INLINE MARKS ── */
+  mark { background: rgba(79,142,255,.18); color: var(--blue); padding: 1px 5px; border-radius: 2px; font-size: .92em; }
+  mark.r { background: rgba(255,79,123,.15); color: var(--red); }
+  mark.y { background: rgba(79,255,176,.14); color: var(--green); }
+  mark.o { background: rgba(255,183,79,.14); color: var(--orange); }
+  mark.p { background: rgba(192,132,252,.15); color: var(--purple); }
+  code {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    background: var(--bg3); border: 1px solid var(--border);
+    padding: 1px 6px; border-radius: 2px; color: var(--green);
+  }
+  blockquote {
+    border-left: 2px solid var(--blue); padding: 10px 18px;
+    margin: 18px 0; color: var(--muted); font-style: italic; font-size: 14px;
+  }
+  ul.body-list { padding-left: 20px; margin-bottom: 12px; }
+  ul.body-list li { margin-bottom: 6px; }
+
+  /* ── ATTACK/DEFENSE GRID ── */
+  .atkdef {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; margin: 20px 0;
+    border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+  }
+  @media (max-width: 580px) { .atkdef { grid-template-columns: 1fr; } }
+  .atkdef-header {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    text-transform: uppercase; letter-spacing: .08em;
+    padding: 10px 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .atkdef-header.atk { background: rgba(255,79,123,.12); color: var(--red); border-bottom: 1px solid var(--border); }
+  .atkdef-header.def { background: rgba(79,255,176,.08); color: var(--green); border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); }
+  .atkdef-body { padding: 14px 16px; background: var(--bg2); }
+  .atkdef-body.def-body { border-left: 1px solid var(--border); }
+  .atkdef-row {
+    font-size: 13px; padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .atkdef-row:last-child { border-bottom: none; }
+  .atkdef-row .icon { flex-shrink: 0; }
+
+  /* ── PRIORITY CARD ── */
+  .priority-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+  @media (max-width: 580px) { .priority-grid { grid-template-columns: 1fr; } }
+  .priority-card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 16px 18px;
+    position: relative; overflow: hidden;
+  }
+  .priority-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; width: 3px; height: 100%;
+  }
+  .prio-1::before { background: var(--red); }
+  .prio-2::before { background: var(--orange); }
+  .prio-3::before { background: var(--blue); }
+  .prio-4::before { background: var(--green); }
+  .priority-card h4 {
+    font-family: 'Syne', sans-serif; font-size: 13px;
+    font-weight: 700; margin-bottom: 6px; color: #fff;
+  }
+  .priority-card .prio-meta {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    color: var(--muted); margin-bottom: 8px;
+    display: flex; gap: 10px; flex-wrap: wrap;
+  }
+  .priority-card p { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 60px; padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    display: flex; justify-content: space-between;
+    flex-wrap: wrap; gap: 8px;
+  }
+  .footer a { color: var(--muted); text-decoration: none; }
+  .footer a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="top-nav">
+  <a class="nav-home" href="index.html">← AL Conseil · Articles</a>
+  <a class="nav-back" href="index.html">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <path d="M12 7H2M6 3L2 7l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    All articles
+  </a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">// Incident Analysis · Endpoint Security · March 2026</div>
+  <h1>When Intune becomes<br><span>a weapon</span></h1>
+  <p class="hero-sub">
+    The Stryker attack and what it changes for every Microsoft 365 admin. Between 80,000 and 200,000 devices wiped. 50 TB exfiltrated. Zero lines of malicious code. Just Microsoft Intune — their own endpoint management tool.
+  </p>
+  <div class="hero-meta">
+    <span class="badge badge-red">🚨 Critical incident · March 11, 2026</span>
+    <span class="badge badge-orange">Handala group · Iran-linked</span>
+    <span class="badge badge-blue">Living-off-the-Land</span>
+    <span class="badge badge-muted">Stryker Corporation · 56,000 employees</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stat-row">
+  <div class="stat-pill"><span class="sv" style="color:var(--red)">200K</span><span class="sl">Devices wiped (max)</span></div>
+  <div class="stat-pill"><span class="sv" style="color:var(--orange)">50 TB</span><span class="sl">Data exfiltrated</span></div>
+  <div class="stat-pill"><span class="sv" style="color:var(--purple)">0</span><span class="sl">Lines of malware</span></div>
+  <div class="stat-pill"><span class="sv" style="color:var(--blue)">61</span><span class="sl">Countries affected</span></div>
+  <div class="stat-pill"><span class="sv" style="color:var(--green)">10 min</span><span class="sl">To enable MAA</span></div>
+</div>
+
+
+<!-- SECTION 1 — ANATOMY -->
+<section>
+  <h2><span class="num">01</span> Attack anatomy — pure Living-off-the-Land</h2>
+
+  <div class="callout callout-bad">
+    <strong>🚨 This is not an Intune vulnerability</strong>
+    The attack exploits no CVE, no 0-day, no software vulnerability. The attackers used the organization's own legitimate tools against itself — with valid administrator permissions, on a perfectly normal Microsoft 365 tenant. This is the definition of Living-off-the-Land.
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-phase">Step 1 — Entry vector</div>
+      <div class="tl-title">AiTM Phishing — session token theft post-MFA</div>
+      <div class="tl-body">
+        The vector is not an exploit — it is sophisticated phishing of the <mark r>Adversary-in-the-Middle (AiTM)</mark>. A transparent proxy intercepts the Microsoft authentication session in real time. The victim completes their MFA on the <strong>real</strong> Microsoft page. The attacker captures the <mark r>session token</mark> issued after success — not the credentials, the post-auth token.<br><br>
+        <strong>Key takeaway</strong>: standard MFA (SMS, OTP, Authenticator push) <mark r>does not protect</mark> against AiTM. The attacker bypasses MFA without breaking it — they intercept after the fact.
+      </div>
+    </div>
+    <div class="tl-item step2">
+      <div class="tl-phase">Step 2 — Persistence</div>
+      <div class="tl-title">Creation of a new Global Administrator account</div>
+      <div class="tl-body">With the token of a compromised admin account, the attackers create <mark o>a new Global Administrator account</mark> under their control. Persistence is guaranteed even if the initial account is detected and disabled. Duration of this phase: a few minutes.</div>
+    </div>
+    <div class="tl-item step3">
+      <div class="tl-phase">Step 3 — Silent exfiltration</div>
+      <div class="tl-title">50 TB via Microsoft APIs — no alarms triggered</div>
+      <div class="tl-body">Over several hours — or possibly several days according to sources — <mark p>50 TB of data</mark> are silently exfiltrated via Microsoft APIs (Graph API, SharePoint, Exchange). No alarms. All of it is legitimate traffic signed by a valid admin account.</div>
+    </div>
+    <div class="tl-item step4">
+      <div class="tl-phase">Step 4 — Destruction</div>
+      <div class="tl-title">Bulk Wipe via Intune — 80,000 to 200,000 devices</div>
+      <div class="tl-body">Via the Intune console, the native <code>Remote Wipe</code> command is executed against the entire enrolled fleet. Laptops, corporate smartphones, and personal BYOD devices are factory-reset — personal photos, eSIMs, and personal banking authentication apps included.<br><br>Intune natively supports <mark r>bulk actions on 100 devices per operation</mark>, with no rate limiting, no secondary approval by default. Nothing technically prevents a loop from covering 200,000 machines.</div>
+    </div>
+  </div>
+</section>
+
+
+<!-- SECTION 2 — WHY INTUNE -->
+<section>
+  <h2><span class="num">02</span> Why Intune is a kill switch by design</h2>
+
+  <p>
+    Microsoft Intune is designed to be authoritative by nature: when Intune sends a command to an enrolled device, <mark r>the device complies immediately without additional verification</mark>. That is exactly what makes it an effective management tool — and a devastating lever when compromised.
+  </p>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Native Intune action</th>
+          <th>Effet</th>
+          <th>Default approval</th>
+          <th>Rate limiting</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Wipe (Remote)</td>
+          <td class="bad">Full factory reset, all data erased</td>
+          <td class="bad">None</td>
+          <td class="bad">None</td>
+        </tr>
+        <tr>
+          <td>Retire</td>
+          <td class="warn">Corporate data removal + unenrollment</td>
+          <td class="bad">None</td>
+          <td class="bad">None</td>
+        </tr>
+        <tr>
+          <td>Delete ManagedDevice</td>
+          <td class="warn">Object removal from Intune</td>
+          <td class="bad">None</td>
+          <td class="bad">None</td>
+        </tr>
+        <tr>
+          <td>Bulk actions</td>
+          <td class="bad">100 devices per operation, in a loop</td>
+          <td class="bad">None</td>
+          <td class="bad">None</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ What Microsoft has changed — and what remains to do</strong>
+    Since October 2024: MFA mandatory for all connections to the Intune Admin Center portal. Since October 2025: extended to Azure CLI, PowerShell, mobile apps, IaC tools, and REST API endpoints. 2026: Multi-Admin Approval extended to Settings Catalog and Device Compliance Policies. Standard MFA still does not protect against AiTM.
+  </div>
+</section>
+
+
+<!-- SECTION 3 — MITIGATIONS -->
+<section>
+  <h2><span class="num">03</span> Action plan — from theory to implementation</h2>
+
+  <div class="priority-grid">
+    <div class="priority-card prio-1">
+      <h4>🔐 Phishing-resistant MFA — PRIORITY 1</h4>
+      <div class="prio-meta"><span>~€50/key</span><span>1 week</span><span>FIDO2 / WHfB</span></div>
+      <p>Only FIDO2 (YubiKey) and Windows Hello for Business protect against AiTM. Configure an Authentication Strength in Conditional Access that only accepts these methods for Intune Administrator and Global Administrator roles.</p>
+    </div>
+    <div class="priority-card prio-1">
+      <h4>✅ Multi-Admin Approval — PRIORITY 1</h4>
+      <div class="prio-meta"><span>Free</span><span>10 minutes</span><span>Direct mitigation</span></div>
+      <p>This native Intune feature requires a second admin to approve any wipe/retire action before execution. It is the most direct mitigation against the Stryker pattern. A secondary approval would have blocked the attack.</p>
+    </div>
+    <div class="priority-card prio-2">
+      <h4>⏱️ PIM — No more permanent admin sessions</h4>
+      <div class="prio-meta"><span>Entra ID P2</span><span>1 day</span><span>Just-in-time</span></div>
+      <p>None compte ne devrait avoir Intune Administrator ou Global Administrator en permanence. Avec PIM : élévation just-in-time, durée bornée (1h/4h), approval workflow, audit trail. Un compte compromis hors session PIM active has no power.</p>
+    </div>
+    <div class="priority-card prio-2">
+      <h4>🏷️ Scope Tags — Limiting the blast radius</h4>
+      <div class="prio-meta"><span>Free</span><span>1–2 weeks</span><span>Limited perimeter</span></div>
+      <p>Intune Scope Tags restrict the reach of a role to a subset of the fleet. An admin compromised on the "EMEA-Mobile" scope cannot wipe "NA-Workstations" devices.</p>
+    </div>
+    <div class="priority-card prio-3">
+      <h4>☁️ Cloud-only admin accounts without Exchange</h4>
+      <div class="prio-meta"><span>Free</span><span>1 day</span><span>Reduced surface</span></div>
+      <p>Admin accounts must never hold an Exchange/M365 license. No mailbox = no AiTM phishing surface. They should exist only in Entra ID, with no access to business applications.</p>
+    </div>
+    <div class="priority-card prio-3">
+      <h4>🔒 Conditional Access — Compliant devices only</h4>
+      <div class="prio-meta"><span>Entra ID P1</span><span>1 day</span><span>Device trust</span></div>
+      <p>Condition: Role = Intune Admin / Global Admin. Requirement: Compliant device + Named Location + Authentication Strength FIDO2/WHfB. Triple verification before any admin access.</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- SECTION 4 — KQL SENTINEL -->
+<section>
+  <h2><span class="num">04</span> Microsoft Sentinel — detect and block in real time</h2>
+
+  <div class="callout callout-info">
+    <strong>💡 Prerequisites</strong>
+    Microsoft Intune connector enabled in Sentinel (table <code>IntuneAuditLogs</code>) · Microsoft Entra ID connector enabled (<code>AuditLogs</code>, <code>SigninLogs</code>) · <code>AuditLogs</code> and <code>SigninLogs</code> from Entra ID ingest for free — only <code>IntuneAuditLogs</code> and <code>MicrosoftGraphActivityLogs</code> are billed (~$5/GB).
+  </div>
+
+  <h3>🔴 Rule 1 — Bulk wipe detection (volume threshold)</h3>
+  <p>Triggers an alert as soon as an admin executes more than <strong>5 destructive actions in 15 minutes</strong>. A threshold more than sufficient to distinguish a legitimate operation from an attack.</p>
+
+  <div class="code-wrap has-label">
+    <div class="code-label">
+      <span class="code-dot" style="background:var(--red)"></span>
+      KQL — IntuneAuditLogs · Scheduled Analytics Rule · Frequency 5min · Severity High
+    </div>
+    <pre><span class="cm">// RULE 1: Bulk Wipe Detection</span>
+IntuneAuditLogs
+| where TimeGenerated > ago(15m)
+| where OperationName has_any (<span class="cs">"wipe ManagedDevice"</span>, 
+                               <span class="cs">"retire ManagedDevice"</span>, 
+                               <span class="cs">"Delete ManagedDevice"</span>,
+                               <span class="cs">"cleanWindowsDevice ManagedDevice"</span>)
+| extend Props        = todynamic(Properties)
+| extend ActorUPN     = tostring(Props.Actor.UPN)
+| extend DeviceName   = tostring(Props.TargetDisplayNames[0])
+| extend DeviceId     = tostring(Props.TargetObjectIds[0])
+| summarize 
+    ActionCount  = count(),
+    FirstAction  = min(TimeGenerated),
+    LastAction   = max(TimeGenerated),
+    DeviceList   = make_set(DeviceName, 100),
+    Operations   = make_set(OperationName)
+  by ActorUPN, bin(TimeGenerated, 15m)
+| where ActionCount > 5
+| extend AlertSeverity = case(
+    ActionCount > 50,  <span class="cs">"Critical"</span>,
+    ActionCount > 20,  <span class="cs">"High"</span>,
+    ActionCount > 5,   <span class="cs">"Medium"</span>, <span class="cs">"Low"</span>)
+| project TimeGenerated, ActorUPN, ActionCount, AlertSeverity, 
+          FirstAction, LastAction, DeviceList, Operations
+| sort by ActionCount desc</pre>
+  </div>
+
+  <h3>🟠 Rule 2 — New Global Admin account created (exact Stryker pattern)</h3>
+  <p>This is exactly the persistence move documented in the attack. NRT (Near Real-Time) rule — triggers in seconds.</p>
+
+  <div class="code-wrap has-label">
+    <div class="code-label">
+      <span class="code-dot" style="background:var(--orange)"></span>
+      KQL — AuditLogs · NRT Rule · Free · Severity High
+    </div>
+    <pre><span class="cm">// RULE 2: New Global Admin Account Created</span>
+AuditLogs
+| where TimeGenerated > ago(1h)
+| where OperationName in (<span class="cs">"Add member to role"</span>, <span class="cs">"Add eligible member to role"</span>)
+| extend TargetRoleName = tostring(TargetResources[0].displayName)
+| where TargetRoleName in (<span class="cs">"Global Administrator"</span>, 
+                           <span class="cs">"Intune Administrator"</span>,
+                           <span class="cs">"Cloud Device Administrator"</span>,
+                           <span class="cs">"Privileged Role Administrator"</span>,
+                           <span class="cs">"Privileged Authentication Administrator"</span>)
+| extend InitiatorUPN  = tostring(parse_json(tostring(InitiatedBy.user)).userPrincipalName)
+| extend InitiatorIP   = tostring(parse_json(tostring(InitiatedBy.user)).ipAddress)
+| extend TargetUPN     = tostring(TargetResources[1].userPrincipalName)
+| extend AssignmentType = iif(OperationName has <span class="cs">"eligible"</span>, <span class="cs">"PIM-Eligible"</span>, <span class="cs">"Permanent"</span>)
+| project TimeGenerated, InitiatorUPN, InitiatorIP, 
+          TargetRoleName, TargetUPN, AssignmentType, CorrelationId</pre>
+  </div>
+
+  <h3>🟡 Rule 3 — Admin sign-in from new country / risky IP</h3>
+
+  <div class="code-wrap has-label">
+    <div class="code-label">
+      <span class="code-dot" style="background:var(--warn)"></span>
+      KQL — SigninLogs · 15min · Severity Medium
+    </div>
+    <pre><span class="cm">// RULE 3: Admin Sign-in Anomaly — New Country</span>
+<span class="ck">let</span> AdminRoles = dynamic([<span class="cs">"Global Administrator"</span>, <span class="cs">"Intune Administrator"</span>, 
+                          <span class="cs">"Cloud Device Administrator"</span>]);
+<span class="ck">let</span> KnownCountries = (
+    SigninLogs
+    | where TimeGenerated between (ago(90d) .. ago(1d))
+    | where UserType != <span class="cs">"Guest"</span>
+    | mv-expand todynamic(AppRoleAssignments)
+    | where tostring(AppRoleAssignments) has_any (AdminRoles)
+    | summarize KnownLocations = make_set(Location) by UserPrincipalName
+);
+SigninLogs
+| where TimeGenerated > ago(1d)
+| where ResultType == 0
+| where UserType != <span class="cs">"Guest"</span>
+| mv-expand todynamic(AppRoleAssignments)
+| where tostring(AppRoleAssignments) has_any (AdminRoles)
+| join kind=leftouter KnownCountries on UserPrincipalName
+| where Location !in (KnownLocations)
+| extend RiskLevel = tostring(RiskLevelDuringSignIn)
+| project TimeGenerated, UserPrincipalName, Location, 
+          IPAddress, RiskLevel, AppDisplayName, 
+          AuthenticationRequirement, DeviceDetail
+| where RiskLevel in (<span class="cs">"high"</span>, <span class="cs">"medium"</span>) or isempty(RiskLevel)</pre>
+  </div>
+
+  <h3>🔵 Rule 4 — Graph API spike (pre-wipe exfiltration)</h3>
+  <p>The exfiltration of 50 TB before the wipe leaves traces. An API call spike from a single account in a short window is a precursor to the attack.</p>
+
+  <div class="code-wrap has-label">
+    <div class="code-label">
+      <span class="code-dot" style="background:var(--blue)"></span>
+      KQL — MicrosoftGraphActivityLogs · Connecteur requis · 1h
+    </div>
+    <pre><span class="cm">// RULE 4: Graph API Spike — Pre-Wipe Exfiltration</span>
+MicrosoftGraphActivityLogs
+| where TimeGenerated > ago(1h)
+| where ResponseStatusCode == 200
+| where RequestUri has_any (<span class="cs">"/devices"</span>, <span class="cs">"/managedDevices"</span>, 
+                            <span class="cs">"/users"</span>, <span class="cs">"/groups"</span>, <span class="cs">"/directoryObjects"</span>)
+| summarize 
+    CallCount        = count(),
+    UniqueEndpoints  = dcount(RequestUri),
+    BytesOut         = sum(ResponseSizeBytes)
+  by UserId, bin(TimeGenerated, 10m)
+| where CallCount > 500 or BytesOut > 104857600  <span class="cm">// > 100 MB en 10 min</span>
+| project TimeGenerated, UserId, CallCount, UniqueEndpoints, BytesOut
+| sort by CallCount desc</pre>
+  </div>
+</section>
+
+
+<!-- SECTION 5 — SOAR PLAYBOOK -->
+<section>
+  <h2><span class="num">05</span> SOAR Playbook — from alert to account disabled in &lt; 60 seconds</h2>
+
+  <p>The following Logic App triggers on Rules 1 and 2 to automate the response: actor account disabled, token revocation, PIM role removal, and Teams SOC notification.</p>
+
+  <div class="callout callout-purple">
+    <strong>🤖 Required Managed Identity permissions</strong>
+    Graph API Application : <code>User.ReadWrite.All</code> · <code>Directory.ReadWrite.All</code> · <code>RoleManagement.ReadWrite.Directory</code><br>
+    Microsoft Sentinel : <code>Microsoft Sentinel Responder</code>
+  </div>
+
+  <div class="code-wrap has-label">
+    <div class="code-label">
+      <span class="code-dot" style="background:var(--purple)"></span>
+      Logic App — Key SOAR Playbook actions
+    </div>
+    <pre><span class="cm">// Action 1: Disable the actor account</span>
+{
+  <span class="cv">"method"</span>: <span class="cs">"PATCH"</span>,
+  <span class="cv">"uri"</span>: <span class="cs">"https://graph.microsoft.com/v1.0/users/@{triggerBody()?['ActorUPN']}"</span>,
+  <span class="cv">"body"</span>: { <span class="cv">"accountEnabled"</span>: false }
+}
+
+<span class="cm">// Action 2: Revoke ALL active refresh tokens</span>
+{
+  <span class="cv">"method"</span>: <span class="cs">"POST"</span>,
+  <span class="cv">"uri"</span>: <span class="cs">"https://graph.microsoft.com/v1.0/users/@{triggerBody()?['ActorUPN']}/revokeSignInSessions"</span>
+}
+
+<span class="cm">// Action 3: List and revoke active PIM roles</span>
+<span class="cm">// GET /roleAssignments?filter=principalId eq {userId}</span>
+<span class="cm">// DELETE /roleAssignmentScheduleRequests/{id}</span>
+
+<span class="cm">// Action 4: Teams SOC notification</span>
+{
+  <span class="cv">"text"</span>: <span class="cs">"🚨 ALERTE WIPE MASSIF - Compte désactivé automatiquement\n
+           Acteur: @{triggerBody()?['ActorUPN']}\n
+           Devices: @{triggerBody()?['ActionCount']}\n
+           Heure: @{utcNow()}\n
+           ➡️ Incident Sentinel: @{triggerBody()?['IncidentUrl']}"</span>
+}</pre>
+  </div>
+
+  <div class="callout callout-warn">
+    <strong>⚠️ Operational recommendation</strong>
+    Do not set the playbook to full-auto on Rule 1 if your environment includes legitimate bulk-wipe procedures (hardware refresh, decommissioning). Configure a dynamic threshold based on 90-day operational history or require SOC validation within 5 minutes. Rule 2 (new GA account creation) can be set to full-auto without operational risk.
+  </div>
+</section>
+
+
+<!-- SECTION 6 — ATT&DEF -->
+<section>
+  <h2><span class="num">06</span> Overview — attack vs defense</h2>
+
+  <div class="atkdef">
+    <div class="atkdef-header atk">🔴 Handala attack chain</div>
+    <div class="atkdef-header def">🟢 Countermeasure</div>
+    <div class="atkdef-body">
+      <div class="atkdef-row"><span class="icon">→</span><span>AiTM Phishing → Session Token stolen</span></div>
+      <div class="atkdef-row"><span class="icon">→</span><span>Persistent GA account created</span></div>
+      <div class="atkdef-row"><span class="icon">→</span><span>Silent exfiltration via Graph API</span></div>
+      <div class="atkdef-row"><span class="icon">→</span><span>Bulk Wipe via Intune</span></div>
+      <div class="atkdef-row"><span class="icon">→</span><span>Blast radius = 80–200K devices</span></div>
+    </div>
+    <div class="atkdef-body def-body">
+      <div class="atkdef-row"><span class="icon ok">✓</span><span>FIDO2 / WHfB (domain-bound, non-replayable)</span></div>
+      <div class="atkdef-row"><span class="icon ok">✓</span><span>Sentinel Rule 2 NRT + Playbook → disabled &lt; 60s</span></div>
+      <div class="atkdef-row"><span class="icon ok">✓</span><span>Sentinel Rule 4 (Graph spike) + Purview DLP</span></div>
+      <div class="atkdef-row"><span class="icon ok">✓</span><span>Multi-Admin Approval + Sentinel Rule 1 (threshold &gt;5)</span></div>
+      <div class="atkdef-row"><span class="icon ok">✓</span><span>PIM (no standing access) + Scope Tags</span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- SECTION 7 — CHECKLIST -->
+<section>
+  <h2><span class="num">07</span> Immediate hardening checklist</h2>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Control</th>
+          <th>Impact</th>
+          <th>Cost</th>
+          <th>Complexity</th>
+          <th>Timeline</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Multi-Admin Approval Wipe/Retire</td>
+          <td><span class="stars">★★★★★</span></td>
+          <td class="ok">Free</td>
+          <td class="ok">Low</td>
+          <td class="ok">10 min</td>
+        </tr>
+        <tr>
+          <td>PIM on Intune Admin / Global Admin</td>
+          <td><span class="stars">★★★★★</span></td>
+          <td class="warn">Entra P2</td>
+          <td class="warn">Moderate</td>
+          <td class="warn">1 day</td>
+        </tr>
+        <tr>
+          <td>Sentinel Rule 2 — new GA account (AuditLogs)</td>
+          <td><span class="stars">★★★★★</span></td>
+          <td class="ok">Free</td>
+          <td class="ok">Low</td>
+          <td class="ok">30 min</td>
+        </tr>
+        <tr>
+          <td>FIDO2 / WHfB for admin accounts</td>
+          <td><span class="stars">★★★★★</span></td>
+          <td class="warn">~€50/key</td>
+          <td class="warn">Moderate</td>
+          <td class="warn">1 week</td>
+        </tr>
+        <tr>
+          <td>Sentinel Rule 1 — bulk wipe</td>
+          <td><span class="stars">★★★★☆</span></td>
+          <td class="warn">Pay-per-GB</td>
+          <td class="ok">Low</td>
+          <td class="ok">30 min</td>
+        </tr>
+        <tr>
+          <td>Cloud-only admin accounts without Exchange</td>
+          <td><span class="stars">★★★★☆</span></td>
+          <td class="ok">Free</td>
+          <td class="ok">Low</td>
+          <td class="ok">1 day</td>
+        </tr>
+        <tr>
+          <td>Conditional Access (compliant device)</td>
+          <td><span class="stars">★★★★☆</span></td>
+          <td class="warn">Entra P1</td>
+          <td class="warn">Moderate</td>
+          <td class="warn">1 day</td>
+        </tr>
+        <tr>
+          <td>SOAR Playbook (auto-disable)</td>
+          <td><span class="stars">★★★★☆</span></td>
+          <td class="warn">Logic App (~$)</td>
+          <td class="warn">Moderate</td>
+          <td class="warn">2–3 days</td>
+        </tr>
+        <tr>
+          <td>Intune Scope Tags</td>
+          <td><span class="stars">★★★☆☆</span></td>
+          <td class="ok">Free</td>
+          <td class="bad">High</td>
+          <td class="bad">1–2 weeks</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+
+<!-- CLOSING -->
+<section>
+  <h2><span class="num">08</span> What this means for CISOs and IT leaders</h2>
+
+  <div class="callout callout-bad">
+    <strong>🚨 The real question is not "could this happen to us?"</strong>
+    It is "how long would it take us to respond?" Without Sentinel configured and without Multi-Admin Approval enabled, the answer is probably: after everything is already wiped.
+  </div>
+
+  <p>The Stryker attack is not a technological curiosity. It is a signal: <mark r>endpoint management tools have become a critical attack surface</mark>, on par with VPNs and Active Directory. CISA issued an urgent alert on March 18, 2026, stating they were aware of malicious activity targeting endpoint management systems of US organizations <strong>beyond Stryker</strong>.</p>
+
+  <p>The tools exist. They are often already in your licenses. <mark y>The gap is in the configuration.</mark></p>
+
+  <blockquote>
+    Multi-Admin Approval for Wipe/Retire: free, 10 minutes, direct mitigation. It is the first action to take today.
+  </blockquote>
+
+  <p style="color:var(--muted);font-size:13px;margin-top:24px;line-height:1.7;">
+    Written from CISA sources (March 18, 2026), BleepingComputer, Cybersecurity Dive, Forrester, and Microsoft technical documentation. KQL queries are adapted to the actual structure of the <code>IntuneAuditLogs</code> table — test and adjust for your environment before production deployment.<br><br>
+    <em>Note on figures: sources vary between ~80,000 devices (BleepingComputer) and 200,000+ (Handala claim). Stryker has not officially confirmed a precise device count to date.</em>
+  </p>
+</section>
+
+<div class="footer">
+  <span>// AL Conseil · Endpoint Security · March 2026</span>
+  <span>
+    <a href="index.html">← All articles</a> &nbsp;·&nbsp;
+    #Microsoft365 #Intune #Sentinel #KQL #ZeroTrust #CISO
+  </span>
+</div>
+
+</body>
+</html>
