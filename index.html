@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- SEO -->
+<title>VDI at Scale 2025 — AWS WorkSpaces vs Citrix vs AVD vs Windows 365</title>
+<meta name="description" content="An unfiltered field report on deploying VDI at scale: 8,000 users, 1,600 branches, 60 TB of PST files, dual identity architecture, Azure migration backend, and Teams VDI2 offloading — from a Microsoft TAP participant.">
+<meta name="author" content="AL Conseil">
+<meta name="keywords" content="AWS WorkSpaces, AVD, Citrix, Windows 365, VDI, Teams offloading, Exchange Online, Purview, FSLogix, Intune, Zscaler, CIS Benchmark">
+
+<!-- Open Graph — LinkedIn / Twitter preview -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="VDI at Scale 2025 — AWS WorkSpaces vs Citrix vs AVD vs Windows 365">
+<meta property="og:description" content="8,000 users · 1,600 branches · 60 TB PST · Teams VDI2 TAP participant. An unfiltered technical post-mortem on a constrained platform choice and the custom tooling built to make it work.">
+<meta property="og:url" content="https://alconseil.github.io/Linkedin/">
+<meta property="og:site_name" content="AL Conseil — Technical Articles">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="VDI at Scale 2025 — AWS WorkSpaces vs Citrix vs AVD vs Windows 365">
+<meta name="twitter:description" content="8,000 users · 1,600 branches · 60 TB PST · Teams VDI2 TAP participant. An unfiltered technical field report.">
+
+<link rel="canonical" href="https://alconseil.github.io/Linkedin/">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg:      #0a0a0f;
+    --bg2:     #111118;
+    --bg3:     #17171f;
+    --border:  #2a2a38;
+    --accent:  #4f8eff;
+    --accent2: #ff4f7b;
+    --accent3: #4fffb0;
+    --warn:    #ffb74f;
+    --text:    #e8e8f0;
+    --muted:   #7a7a9a;
+    --aws:     #ff9900;
+    --citrix:  #00a3e0;
+    --avd:     #0078d4;
+    --w365:    #7b2fff;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── AMBIENT BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; right: -200px;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,142,255,0.06) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -150px; left: -150px;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79,255,176,0.04) 0%, transparent 65%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .page { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ── TOP NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+  }
+  .nav-inner {
+    max-width: 900px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .nav-brand {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: .06em;
+    text-decoration: none;
+  }
+  .nav-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    color: var(--bg); background: var(--accent);
+    padding: 7px 18px; border-radius: 3px;
+    text-decoration: none;
+    transition: opacity .2s;
+  }
+  .nav-cta:hover { opacity: .85; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 72px 0 56px;
+    border-bottom: 1px solid var(--border);
+    animation: fadeUp .6s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform: translateY(20px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap; margin-bottom: 28px;
+  }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: .1em;
+    padding: 5px 12px; border-radius: 2px;
+  }
+  .badge-blue   { background: rgba(79,142,255,.12); color: var(--accent);  border: 1px solid rgba(79,142,255,.3); }
+  .badge-green  { background: rgba(79,255,176,.10); color: var(--accent3); border: 1px solid rgba(79,255,176,.25); }
+  .badge-orange { background: rgba(255,153,0,.12);  color: var(--aws);     border: 1px solid rgba(255,153,0,.3); }
+  .badge-muted  { background: rgba(255,255,255,.04); color: var(--muted);  border: 1px solid var(--border); }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5.5vw, 60px);
+    font-weight: 800;
+    line-height: 1.12;
+    color: #fff;
+    margin-bottom: 24px;
+  }
+  h1 em { font-style: normal; color: var(--accent); }
+
+  .hero-lead {
+    font-size: clamp(15px, 2.5vw, 17px);
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 660px;
+    line-height: 1.7;
+    margin-bottom: 36px;
+  }
+
+  /* ── STAT PILLS ── */
+  .stats {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 40px;
+    animation: fadeUp .6s .1s ease both;
+  }
+  .stat {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 12px 20px;
+    text-align: center; flex: 1; min-width: 110px;
+  }
+  .stat-val {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(20px, 3vw, 28px);
+    font-weight: 800;
+    display: block;
+  }
+  .stat-lbl {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* ── CTA BUTTON ── */
+  .cta-row {
+    display: flex; align-items: center; gap: 16px;
+    flex-wrap: wrap;
+    animation: fadeUp .6s .2s ease both;
+  }
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px;
+    color: var(--bg); background: var(--accent);
+    padding: 14px 32px; border-radius: 4px;
+    text-decoration: none;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 0 0 0 rgba(79,142,255,0);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(79,142,255,.25);
+  }
+  .btn-primary svg { flex-shrink: 0; }
+  .btn-secondary {
+    font-family: 'IBM Plex Mono', monospace; font-size: 13px;
+    color: var(--muted); text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+    transition: color .2s, border-color .2s;
+  }
+  .btn-secondary:hover { color: var(--text); border-color: var(--text); }
+
+  /* ── SECTION TITLES ── */
+  .section { padding: 60px 0; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 14px;
+  }
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(22px, 3.5vw, 32px);
+    font-weight: 700; color: #fff;
+    margin-bottom: 20px;
+  }
+
+  /* ── PLATFORM CARDS ── */
+  .platform-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px; margin-top: 24px;
+  }
+  .platform-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 20px;
+    position: relative; overflow: hidden;
+    transition: transform .2s, border-color .2s;
+  }
+  .platform-card:hover { transform: translateY(-3px); }
+  .platform-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; width: 100%; height: 3px;
+  }
+  .pc-aws::before   { background: var(--aws);    } .platform-card.pc-aws:hover   { border-color: var(--aws); }
+  .pc-ctx::before   { background: var(--citrix); } .platform-card.pc-ctx:hover   { border-color: var(--citrix); }
+  .pc-avd::before   { background: var(--avd);    } .platform-card.pc-avd:hover   { border-color: var(--avd); }
+  .pc-w365::before  { background: var(--w365);   } .platform-card.pc-w365:hover  { border-color: var(--w365); }
+  .pc-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px; font-weight: 700; margin-bottom: 6px;
+  }
+  .pc-aws .pc-name   { color: var(--aws);    }
+  .pc-ctx .pc-name   { color: var(--citrix); }
+  .pc-avd .pc-name   { color: var(--avd);    }
+  .pc-w365 .pc-name  { color: var(--w365);   }
+  .pc-verdict { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── TOPIC LIST ── */
+  .topic-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px; margin-top: 20px;
+  }
+  .topic-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    transition: border-color .2s;
+  }
+  .topic-item:hover { border-color: var(--accent); }
+  .topic-icon {
+    font-size: 18px; flex-shrink: 0; margin-top: 1px;
+  }
+  .topic-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 600;
+    color: #fff; margin-bottom: 3px;
+  }
+  .topic-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+  /* ── HIGHLIGHT QUOTE ── */
+  .highlight {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent3);
+    border-radius: 0 4px 4px 0;
+    padding: 24px 28px;
+    margin: 32px 0;
+  }
+  .highlight p {
+    font-size: clamp(15px,2.5vw,18px);
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.65;
+  }
+  .highlight-source {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--muted);
+    margin-top: 12px;
+  }
+
+  /* ── TEAMS NEW BADGE ── */
+  .new-badge {
+    display: inline-block;
+    background: rgba(79,255,176,.15);
+    color: var(--accent3);
+    border: 1px solid rgba(79,255,176,.3);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; letter-spacing: .08em;
+    padding: 3px 8px; border-radius: 2px;
+    vertical-align: middle; margin-left: 8px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 60px;
+    padding: 28px 0;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-brand {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted);
+  }
+  .footer-brand span { color: var(--accent); }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-links a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-links a:hover { color: var(--text); }
+
+  /* ── SCROLL INDICATOR ── */
+  .scroll-hint {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px; margin-top: 48px;
+    color: var(--muted); font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:.4; } 50% { opacity:.9; } }
+  .scroll-hint::after {
+    content: '↓';
+    font-size: 18px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 520px) {
+    .cta-row { flex-direction: column; align-items: flex-start; }
+    .btn-primary { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="https://alconseil.github.io/Linkedin/">// AL Conseil · Technical Articles</a>
+    <a class="nav-cta" href="vdi-comparison-linkedin-en.html">
+      Read the article
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-eyebrow">
+      <span class="badge badge-blue">// Endpoint & VDI Architecture</span>
+      <span class="badge badge-orange">Field experience · Production</span>
+      <span class="badge badge-green">Teams VDI2 TAP participant</span>
+      <span class="badge badge-muted">2025 · Q2</span>
+    </div>
+
+    <h1>VDI at Scale —<br><em>the unfiltered version</em></h1>
+
+    <p class="hero-lead">
+      AWS WorkSpaces vs Citrix vs AVD vs Windows 365. Not a vendor benchmark — a field report from a production deployment of 8,000 users across 1,600 branches, with a multi-million AWS financial constraint, a dual-identity thin client architecture, and a purpose-built Azure migration backend.
+    </p>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-val" style="color:var(--aws)">8,000</span>
+        <span class="stat-lbl">WorkSpaces</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" style="color:var(--warn)">1,600</span>
+        <span class="stat-lbl">Branches</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" style="color:var(--accent2)">60 TB</span>
+        <span class="stat-lbl">PST migrated</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" style="color:var(--accent3)">10,000</span>
+        <span class="stat-lbl">Mailboxes</span>
+      </div>
+      <div class="stat">
+        <span class="stat-val" style="color:var(--accent)">14</span>
+        <span class="stat-lbl">Sections</span>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a class="btn-primary" href="vdi-comparison-linkedin-en.html">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Read the full article
+      </a>
+      <a class="btn-secondary" href="vdi-comparison-linkedin-en.html#scores">Jump to scores →</a>
+    </div>
+
+    <div class="scroll-hint">scroll to explore</div>
+  </section>
+
+  <!-- PLATFORMS -->
+  <section class="section">
+    <div class="section-tag">// Platform verdicts</div>
+    <h2>Four platforms. One constrained choice.</h2>
+    <p style="color:var(--muted);max-width:600px;">
+      The article covers all four platforms in depth — architecture, TCO, identity, profiles, printing, Teams, DRP, and endpoint management. Here's the field verdict for each.
+    </p>
+
+    <div class="platform-grid">
+      <div class="platform-card pc-aws">
+        <div class="pc-name">AWS WorkSpaces</div>
+        <div class="pc-verdict">Chosen due to a multi-million AWS financial commitment. Technical gaps compensated by custom tooling. Teams VDI2 offloading now GA — we participated in the TAP.</div>
+      </div>
+      <div class="platform-card pc-ctx">
+        <div class="pc-name">Citrix DaaS</div>
+        <div class="pc-verdict">The most mature platform on printing (CUP), profiles (CPM), and USB redirection (HDX). High TCO justified at scale. Roadmap post-CSG acquisition to monitor.</div>
+      </div>
+      <div class="platform-card pc-avd">
+        <div class="pc-name">Azure Virtual Desktop</div>
+        <div class="pc-verdict">Best overall value for Microsoft-centric organizations. Native Intune, Entra ID SSO, FSLogix included, Teams offloading, Universal Print. Best platform trajectory at 2026 horizon.</div>
+      </div>
+      <div class="platform-card pc-w365">
+        <div class="pc-name">Windows 365</div>
+        <div class="pc-verdict">Maximum operational simplicity. Fixed cost, Intune as single control plane, transparent Exchange/OneDrive migration. Perfect for branch agent profiles.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT'S COVERED -->
+  <section class="section">
+    <div class="section-tag">// What's in the article</div>
+    <h2>14 sections. No vendor filter.</h2>
+
+    <div class="topic-grid">
+      <div class="topic-item">
+        <span class="topic-icon">💰</span>
+        <div>
+          <div class="topic-title">The financial lock-in nobody documents</div>
+          <div class="topic-desc">Why the AWS contract made WorkSpaces the only economically viable choice — regardless of technical merit.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">🪪</span>
+        <div>
+          <div class="topic-title">Dual identity — two tenants, one user</div>
+          <div class="topic-desc">W11 thin client on provider Intune tenant ≠ WorkSpace on org AD + Entra ID SAML. How this shapes the entire architecture.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">🔵</span>
+        <div>
+          <div class="topic-title">Zscaler split tunnel recommendations</div>
+          <div class="topic-desc">What should bypass ZIA on the thin client and on the VDI — with a detailed table per flow type.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">🎯</span>
+        <div>
+          <div class="topic-title">Teams VDI2 / Slimcore — GA + TAP caveats <span class="new-badge">GA FEB 2026</span></div>
+          <div class="topic-desc">We participated in the TAP. The architecture is sound — but Zscaler CDN bypass, version drift, and thin client hardware floor are still open questions at 8,000 users.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">⚡</span>
+        <div>
+          <div class="topic-title">DRP Registration Code — the Lambda solution</div>
+          <div class="topic-desc">In a WorkSpaces DRP failover, the Registration Code changes. We built a Lambda + DynamoDB + Entra ID JWT authorizer to eliminate 4,000 helpdesk calls.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">📁</span>
+        <div>
+          <div class="topic-title">CPM profile migration — cold extraction</div>
+          <div class="topic-desc">Roaming profiles on file server: no VHDx to mount, direct SMB access. NTUSER.DAT cold hive loading. All Known Folders → OneDrive, zero in FSLogix.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">🗂️</span>
+        <div>
+          <div class="topic-title">60 TB PST pipeline — Purview Import</div>
+          <div class="topic-desc">Aspose.Email per-folder item comparison, macro signing on-the-fly with enterprise code signing cert, 15-day read-only window, corrupted PST quarantine + remediation.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">🏗️</span>
+        <div>
+          <div class="topic-title">Azure migration backend — full architecture</div>
+          <div class="topic-desc">SQL + Automation + Key Vault + Blob + Log Analytics + Power BI. Least-privilege App Reg per service. WinForms Purview GUI. KQL correlation queries.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">🔒</span>
+        <div>
+          <div class="topic-title">CIS XML parser → GPO generation</div>
+          <div class="topic-desc">PowerShell XML parser extracting CIS benchmark recommendations and injecting them into GPOs by product (Windows / Office / Edge / Chrome) with loopback on VDI OU.</div>
+        </div>
+      </div>
+      <div class="topic-item">
+        <span class="topic-icon">🖨️</span>
+        <div>
+          <div class="topic-title">Print architecture — dedicated network</div>
+          <div class="topic-desc">Print servers on AWS VMs, local branch printers, dedicated print network separate from VDI user traffic. No session quality impact. Migration path to Universal Print.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HIGHLIGHT -->
+  <section class="section">
+    <div class="highlight">
+      <p>"WorkSpaces got Teams VDI2/Slimcore before AVD and Citrix finish migrating away from legacy WebRTC. The platform race is more open than the benchmarks suggest."</p>
+      <div class="highlight-source">// From the article · Teams VDI2 TAP participant · Feb 2026</div>
+    </div>
+
+    <div class="cta-row">
+      <a class="btn-primary" href="vdi-comparison-linkedin-en.html">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Read the full article
+      </a>
+    </div>
+  </section>
+
+</div><!-- /page -->
+
+<!-- FOOTER -->
+<footer style="max-width:900px;margin:0 auto;padding-left:24px;padding-right:24px;">
+  <div class="footer-brand">
+    <span>AL Conseil</span> · Technical Architecture & Cloud Migration
+  </div>
+  <div class="footer-links">
+    <a href="vdi-comparison-linkedin-en.html">Full article</a>
+    <a href="https://www.linkedin.com/in/" target="_blank" rel="noopener">LinkedIn</a>
+    <a href="https://github.com/alconseil" target="_blank" rel="noopener">GitHub</a>
+  </div>
+</footer>
+
+</body>
+</html>
