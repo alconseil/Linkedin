@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Thomas Andres  — LinkedIn Articles</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:     #0d0d0f;
+    --bg2:    #131316;
+    --bg3:    #1a1a1f;
+    --border: #2a2a32;
+    --text:   #e8e8ee;
+    --muted:  #8888a0;
+    --font:   'Syne', sans-serif;
+    --mono:   'IBM Plex Mono', monospace;
+    --body:   'IBM Plex Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+/* ── HEADER ── */
+.header {
+padding: 64px 32px 48px;
+border-bottom: 1px solid var(–border);
+background: linear-gradient(180deg, #111116 0%, var(–bg) 100%);
+}
+.header-inner { max-width: 900px; margin: 0 auto; }
+.header-label {
+font-family: var(–mono);
+font-size: .7rem;
+letter-spacing: .14em;
+color: var(–muted);
+text-transform: uppercase;
+margin-bottom: 14px;
+}
+.header h1 {
+font-family: var(–font);
+font-size: clamp(1.8rem, 4vw, 2.6rem);
+font-weight: 800;
+color: #fff;
+margin-bottom: 12px;
+}
+.header p {
+font-size: .95rem;
+color: var(–muted);
+max-width: 560px;
+line-height: 1.6;
+}
+
+/* ── GRID ── */
+.main { max-width: 900px; margin: 0 auto; padding: 48px 32px 80px; }
+.grid-label {
+font-family: var(–mono);
+font-size: .68rem;
+letter-spacing: .12em;
+color: var(–muted);
+text-transform: uppercase;
+margin-bottom: 24px;
+}
+.grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+gap: 20px;
+}
+
+/* ── CARD ── */
+.card {
+background: var(–bg2);
+border: 1px solid var(–border);
+border-radius: 14px;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+transition: border-color .2s, transform .2s;
+text-decoration: none;
+color: inherit;
+position: relative;
+}
+.card:hover {
+border-color: var(–card-accent, #555);
+transform: translateY(-2px);
+}
+.card-stripe {
+height: 4px;
+background: var(–card-accent, #555);
+}
+.card-body { padding: 24px; flex: 1; }
+.card-meta {
+font-family: var(–mono);
+font-size: .66rem;
+color: var(–muted);
+letter-spacing: .08em;
+text-transform: uppercase;
+margin-bottom: 12px;
+display: flex; gap: 12px; align-items: center;
+}
+.card-meta .dot {
+width: 6px; height: 6px; border-radius: 50%;
+background: var(–card-accent, #555); flex-shrink: 0;
+}
+.card h2 {
+font-family: var(–font);
+font-size: 1.05rem;
+font-weight: 700;
+color: #fff;
+margin-bottom: 10px;
+line-height: 1.3;
+}
+.card p {
+font-size: .86rem;
+color: #9090aa;
+line-height: 1.55;
+margin-bottom: 18px;
+}
+.card-tags { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 18px; }
+.tag {
+font-family: var(–mono);
+font-size: .62rem;
+padding: 3px 9px;
+border-radius: 4px;
+border: 1px solid var(–card-accent-dim, #333);
+color: var(–card-accent, #888);
+background: var(–card-accent-bg, transparent);
+text-transform: uppercase;
+letter-spacing: .06em;
+}
+.card-footer {
+padding: 14px 24px;
+border-top: 1px solid var(–border);
+display: flex; align-items: center; justify-content: space-between;
+}
+.card-footer span {
+font-family: var(–mono);
+font-size: .68rem;
+color: var(–muted);
+}
+.card-arrow {
+width: 28px; height: 28px; border-radius: 7px;
+background: rgba(255,255,255,.04);
+border: 1px solid var(–border);
+display: flex; align-items: center; justify-content: center;
+font-size: .8rem;
+color: var(–card-accent, #888);
+transition: background .15s;
+}
+.card:hover .card-arrow { background: rgba(255,255,255,.08); }
+
+/* ── STATUS BADGE ── */
+.status {
+position: absolute; top: 18px; right: 18px;
+font-family: var(–mono); font-size: .6rem;
+padding: 3px 8px; border-radius: 4px;
+text-transform: uppercase; letter-spacing: .06em;
+border: 1px solid;
+}
+.status-live   { color: #86efac; background: rgba(34,197,94,.1);   border-color: rgba(34,197,94,.3); }
+.status-new    { color: #fdba74; background: rgba(249,115,22,.1);  border-color: rgba(249,115,22,.3); }
+.status-draft  { color: #8888a0; background: rgba(128,128,160,.1); border-color: rgba(128,128,160,.3); }
+
+/* ── FOOTER ── */
+.footer {
+border-top: 1px solid var(–border);
+padding: 28px 32px;
+text-align: center;
+}
+.footer p { font-size: .78rem; color: var(–muted); }
+
+@media (max-width: 600px) {
+.grid { grid-template-columns: 1fr; }
+.header, .main { padding-left: 20px; padding-right: 20px; }
+}
+</style>
+
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <div class="header-label">alconseil.github.io / LinkedIn</div>
+    <h1>Thomas Marchand</h1>
+    <p>Technical articles on enterprise endpoint management, cloud infrastructure, security hardening, and large-scale migration projects.</p>
+  </div>
+</header>
+
+<main class="main">
+  <div class="grid-label">Published Articles — {{ count: 4 }}</div>
+  <div class="grid">
+
+```
+<!-- ── CARD 1: CVE-2026-3055 (NEW) ── -->
+<a class="card" href="cve-2026-3055-netscaler.html"
+   style="--card-accent:#f97316;--card-accent-dim:rgba(249,115,22,.3);--card-accent-bg:rgba(249,115,22,.06);">
+  <div class="card-stripe"></div>
+  <div class="status status-new">New</div>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="dot"></span>
+      <span>March 2026</span>
+      <span>·</span>
+      <span>Security · CVE</span>
+    </div>
+    <h2>CVE-2026-3055 — The CitrixBleed Pattern Strikes Again</h2>
+    <p>
+      Critical unauthenticated memory overread in NetScaler ADC and Gateway (CVSS 9.3). Active reconnaissance confirmed. SAML IDP configuration in scope. Five Microsoft Sentinel KQL detection rules included.
+    </p>
+    <div class="card-tags">
+      <span class="tag">CVSS 9.3</span>
+      <span class="tag">NetScaler</span>
+      <span class="tag">SAML IDP</span>
+      <span class="tag">Memory Overread</span>
+      <span class="tag">KQL Sentinel</span>
+      <span class="tag">CitrixBleed</span>
+    </div>
+  </div>
+  <div class="card-footer">
+    <span>cve-2026-3055-netscaler.html</span>
+    <div class="card-arrow">→</div>
+  </div>
+</a>
+
+<!-- ── CARD 2: Stryker / Intune Attack ── -->
+<a class="card" href="stryker-intune-attack.html"
+   style="--card-accent:#ef4444;--card-accent-dim:rgba(239,68,68,.3);--card-accent-bg:rgba(239,68,68,.06);">
+  <div class="card-stripe"></div>
+  <div class="status status-live">Live</div>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="dot"></span>
+      <span>2025</span>
+      <span>·</span>
+      <span>Security · Incident</span>
+    </div>
+    <h2>Stryker & the Intune Cyberattack — AiTM, Bulk Wipe, and What Defenders Must Learn</h2>
+    <p>
+      Deep dive into the Handala threat actor's AiTM phishing campaign targeting Intune. Mass device wipe, Sentinel KQL detection rules, and SOAR playbook design.
+    </p>
+    <div class="card-tags">
+      <span class="tag">Intune</span>
+      <span class="tag">AiTM Phishing</span>
+      <span class="tag">Sentinel KQL</span>
+      <span class="tag">SOAR</span>
+      <span class="tag">Handala</span>
+    </div>
+  </div>
+  <div class="card-footer">
+    <span>stryker-intune-attack.html</span>
+    <div class="card-arrow">→</div>
+  </div>
+</a>
+
+<!-- ── CARD 3: VDI Comparison ── -->
+<a class="card" href="vdi-comparison-linkedin-en.html"
+   style="--card-accent:#3b82f6;--card-accent-dim:rgba(59,130,246,.3);--card-accent-bg:rgba(59,130,246,.06);">
+  <div class="card-stripe"></div>
+  <div class="status status-live">Live</div>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="dot"></span>
+      <span>2025</span>
+      <span>·</span>
+      <span>Architecture · VDI</span>
+    </div>
+    <h2>Citrix vs. AWS WorkSpaces — Choosing Your VDI Strategy at Enterprise Scale</h2>
+    <p>
+      Head-to-head comparison of Citrix Virtual Apps & Desktops and AWS WorkSpaces for large enterprise deployments. Cost modeling, identity architecture, and migration considerations.
+    </p>
+    <div class="card-tags">
+      <span class="tag">Citrix</span>
+      <span class="tag">AWS WorkSpaces</span>
+      <span class="tag">VDI</span>
+      <span class="tag">Architecture</span>
+      <span class="tag">Migration</span>
+    </div>
+  </div>
+  <div class="card-footer">
+    <span>vdi-comparison-linkedin-en.html</span>
+    <div class="card-arrow">→</div>
+  </div>
+</a>
+
+<!-- ── CARD 4: stoatwaffle (pending push) ── -->
+<a class="card" href="stoatwaffle_article.html"
+   style="--card-accent:#a855f7;--card-accent-dim:rgba(168,85,247,.3);--card-accent-bg:rgba(168,85,247,.06);">
+  <div class="card-stripe"></div>
+  <div class="status status-draft">Pending</div>
+  <div class="card-body">
+    <div class="card-meta">
+      <span class="dot"></span>
+      <span>2025</span>
+      <span>·</span>
+      <span>Security · Windows</span>
+    </div>
+    <h2>stoatwaffle — Article</h2>
+    <p>
+      Generated but not yet published. See local file stoatwaffle_article.html for content.
+    </p>
+    <div class="card-tags">
+      <span class="tag">Windows</span>
+      <span class="tag">Security</span>
+    </div>
+  </div>
+  <div class="card-footer">
+    <span>stoatwaffle_article.html</span>
+    <div class="card-arrow">→</div>
+  </div>
+</a>
+```
+
+  </div>
+</main>
+
+<footer class="footer">
+  <p>Thomas Marchand · Senior IT Infrastructure Architect · alconseil.github.io/Linkedin</p>
+</footer>
+
+</body>
+</html>
