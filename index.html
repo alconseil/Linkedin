@@ -39,6 +39,7 @@
     --citrix:  #00a3e0;
     --avd:     #0078d4;
     --w365:    #7b2fff;
+    --dprk:    #e63946;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -133,6 +134,7 @@
   .badge-blue   { background: rgba(79,142,255,.12); color: var(--accent);  border: 1px solid rgba(79,142,255,.3); }
   .badge-green  { background: rgba(79,255,176,.10); color: var(--accent3); border: 1px solid rgba(79,255,176,.25); }
   .badge-orange { background: rgba(255,153,0,.12);  color: var(--aws);     border: 1px solid rgba(255,153,0,.3); }
+  .badge-red    { background: rgba(230,57,70,.12);   color: var(--dprk);   border: 1px solid rgba(230,57,70,.3); }
   .badge-muted  { background: rgba(255,255,255,.04); color: var(--muted);  border: 1px solid var(--border); }
 
   h1 {
@@ -225,64 +227,6 @@
     margin-bottom: 20px;
   }
 
-  /* ── PLATFORM CARDS ── */
-  .platform-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px; margin-top: 24px;
-  }
-  .platform-card {
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 18px 20px;
-    position: relative; overflow: hidden;
-    transition: transform .2s, border-color .2s;
-  }
-  .platform-card:hover { transform: translateY(-3px); }
-  .platform-card::before {
-    content: ''; position: absolute;
-    top: 0; left: 0; width: 100%; height: 3px;
-  }
-  .pc-aws::before   { background: var(--aws);    } .platform-card.pc-aws:hover   { border-color: var(--aws); }
-  .pc-ctx::before   { background: var(--citrix); } .platform-card.pc-ctx:hover   { border-color: var(--citrix); }
-  .pc-avd::before   { background: var(--avd);    } .platform-card.pc-avd:hover   { border-color: var(--avd); }
-  .pc-w365::before  { background: var(--w365);   } .platform-card.pc-w365:hover  { border-color: var(--w365); }
-  .pc-name {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700; margin-bottom: 6px;
-  }
-  .pc-aws .pc-name   { color: var(--aws);    }
-  .pc-ctx .pc-name   { color: var(--citrix); }
-  .pc-avd .pc-name   { color: var(--avd);    }
-  .pc-w365 .pc-name  { color: var(--w365);   }
-  .pc-verdict { font-size: 13px; color: var(--muted); line-height: 1.6; }
-
-  /* ── TOPIC LIST ── */
-  .topic-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 12px; margin-top: 20px;
-  }
-  .topic-item {
-    display: flex; align-items: flex-start; gap: 12px;
-    background: var(--bg2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 14px 16px;
-    transition: border-color .2s;
-  }
-  .topic-item:hover { border-color: var(--accent); }
-  .topic-icon {
-    font-size: 18px; flex-shrink: 0; margin-top: 1px;
-  }
-  .topic-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px; font-weight: 600;
-    color: #fff; margin-bottom: 3px;
-  }
-  .topic-desc { font-size: 12px; color: var(--muted); line-height: 1.55; }
-
   /* ── HIGHLIGHT QUOTE ── */
   .highlight {
     background: var(--bg2);
@@ -304,55 +248,6 @@
     margin-top: 12px;
   }
 
-  /* ── TEAMS NEW BADGE ── */
-  .new-badge {
-    display: inline-block;
-    background: rgba(79,255,176,.15);
-    color: var(--accent3);
-    border: 1px solid rgba(79,255,176,.3);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px; letter-spacing: .08em;
-    padding: 3px 8px; border-radius: 2px;
-    vertical-align: middle; margin-left: 8px;
-  }
-
-  /* ── FOOTER ── */
-  footer {
-    margin-top: 60px;
-    padding: 28px 0;
-    border-top: 1px solid var(--border);
-    display: flex; align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap; gap: 12px;
-  }
-  .footer-brand {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px; color: var(--muted);
-  }
-  .footer-brand span { color: var(--accent); }
-  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
-  .footer-links a {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 12px; color: var(--muted);
-    text-decoration: none;
-    transition: color .2s;
-  }
-  .footer-links a:hover { color: var(--text); }
-
-  /* ── SCROLL INDICATOR ── */
-  .scroll-hint {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 6px; margin-top: 48px;
-    color: var(--muted); font-size: 12px;
-    font-family: 'IBM Plex Mono', monospace;
-    animation: pulse 2.5s ease-in-out infinite;
-  }
-  @keyframes pulse { 0%,100% { opacity:.4; } 50% { opacity:.9; } }
-  .scroll-hint::after {
-    content: '↓';
-    font-size: 18px;
-  }
-
   /* ── ARTICLE CARDS ── */
   .article-card {
     background: var(--bg2);
@@ -363,10 +258,7 @@
   }
   .article-card:hover {
     transform: translateY(-3px);
-    border-color: var(--accent);
-    box-shadow: 0 8px 32px rgba(79,142,255,.1);
   }
-  a:has(.article-card:hover) .article-card { border-color: var(--accent); }
   .article-top {
     height: 3px; border-top: 3px solid;
   }
@@ -395,8 +287,54 @@
   .article-cta {
     display: inline-flex; align-items: center; gap: 6px;
     font-family: 'IBM Plex Mono', monospace; font-size: 12px;
-    color: var(--accent); letter-spacing: .04em;
+    letter-spacing: .04em;
   }
+
+  /* NEW badge */
+  .new-pill {
+    display: inline-block;
+    background: rgba(230,57,70,.15);
+    color: var(--dprk);
+    border: 1px solid rgba(230,57,70,.3);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 2px;
+    vertical-align: middle; margin-left: 8px;
+  }
+
+  /* ── SCROLL INDICATOR ── */
+  .scroll-hint {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 6px; margin-top: 48px;
+    color: var(--muted); font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    animation: pulse 2.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity:.4; } 50% { opacity:.9; } }
+  .scroll-hint::after { content: '↓'; font-size: 18px; }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 60px;
+    padding: 28px 0;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-brand {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted);
+  }
+  .footer-brand span { color: var(--accent); }
+  .footer-links { display: flex; gap: 20px; flex-wrap: wrap; }
+  .footer-links a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .footer-links a:hover { color: var(--text); }
 
   /* ── RESPONSIVE ── */
   @media (max-width: 520px) {
@@ -428,13 +366,13 @@
       <span class="badge badge-blue">// Endpoint & VDI Architecture</span>
       <span class="badge badge-orange">Field experience · Production</span>
       <span class="badge badge-green">Teams VDI2 TAP participant</span>
-      <span class="badge badge-muted">2025 · Q2</span>
+      <span class="badge badge-muted">2025–2026</span>
     </div>
 
-    <h1>VDI at Scale —<br><em>the unfiltered version</em></h1>
+    <h1>Technical field reports —<br><em>no vendor filter</em></h1>
 
     <p class="hero-lead">
-      AWS WorkSpaces vs Citrix vs AVD vs Windows 365. Not a vendor benchmark — a field report from a production deployment of 8,000 users across 1,600 branches, with a multi-million AWS financial constraint, a dual-identity thin client architecture, and a purpose-built Azure migration backend.
+      Production deployments, incident analysis, and architecture deep-dives. VDI at scale, endpoint attacks, DPRK threat actors, Microsoft Sentinel detections — written from real operational experience.
     </p>
 
     <div class="stats">
@@ -443,20 +381,20 @@
         <span class="stat-lbl">WorkSpaces</span>
       </div>
       <div class="stat">
-        <span class="stat-val" style="color:var(--warn)">1,600</span>
-        <span class="stat-lbl">Branches</span>
+        <span class="stat-val" style="color:var(--warn)">200K</span>
+        <span class="stat-lbl">Devices at risk</span>
       </div>
       <div class="stat">
         <span class="stat-val" style="color:var(--accent2)">60 TB</span>
         <span class="stat-lbl">PST migrated</span>
       </div>
       <div class="stat">
-        <span class="stat-val" style="color:var(--accent3)">10,000</span>
-        <span class="stat-lbl">Mailboxes</span>
+        <span class="stat-val" style="color:var(--dprk)">0</span>
+        <span class="stat-lbl">Clicks to infect</span>
       </div>
       <div class="stat">
-        <span class="stat-val" style="color:var(--accent)">14</span>
-        <span class="stat-lbl">Sections</span>
+        <span class="stat-val" style="color:var(--accent)">3</span>
+        <span class="stat-lbl">Articles</span>
       </div>
     </div>
 
@@ -465,24 +403,87 @@
         <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
           <path d="M3 9h12M10 4l5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        Read the full article
+        Read the latest article
       </a>
-      <a class="btn-secondary" href="vdi-comparison-linkedin-en.html#scores">Jump to scores →</a>
+      <a class="btn-secondary" href="#articles">Browse all articles ↓</a>
     </div>
 
     <div class="scroll-hint">scroll to explore</div>
   </section>
 
   <!-- ARTICLES -->
-  <section class="section">
+  <section class="section" id="articles">
     <div class="section-tag">// Published articles</div>
     <h2>Technical field reports — no vendor filter</h2>
     <p style="color:var(--muted);max-width:600px;margin-bottom:28px;">
       Production deployments, incident analysis, and architecture deep-dives. Every article is written from real operational experience.
     </p>
 
+    <!-- Article 3 — StoatWaffle (NEW) -->
+    <a href="stoatwaffle_article.html" style="text-decoration:none;display:block;margin-bottom:20px;">
+      <div class="article-card" style="border-color:rgba(230,57,70,.2);">
+        <div class="article-top" style="border-color:var(--dprk)"></div>
+        <div class="article-inner">
+          <div class="article-meta">
+            <span class="badge badge-red">🔴 Threat Intel · March 2026</span>
+            <span class="badge badge-muted">WaterPlum · DPRK</span>
+            <span class="badge badge-muted">Microsoft Sentinel · KQL</span>
+          </div>
+          <h3 class="article-title">
+            StoatWaffle — When VS Code Becomes a Weapon
+            <span class="new-pill">NEW</span>
+          </h3>
+          <p class="article-desc">
+            Zero-click developer compromise via a native VS Code feature (<code style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dprk)">.vscode/tasks.json · runOn: folderOpen</code>). Full anatomy of the North Korean WaterPlum campaign: modular Node.js RAT + Stealer, WSL boundary crossing, Keychain targeting on macOS, 7 production-ready Microsoft Sentinel KQL rules including a multi-signal composite detection.
+          </p>
+          <div class="article-stats">
+            <span>0 clicks required</span>
+            <span>7 Sentinel rules</span>
+            <span>MITRE ATT&amp;CK mapped</span>
+            <span>C2 IOCs included</span>
+          </div>
+          <div class="article-cta" style="color:var(--dprk)">
+            Read the article
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- Article 2 — Stryker -->
+    <a href="stryker-intune-attack.html" style="text-decoration:none;display:block;margin-bottom:20px;">
+      <div class="article-card">
+        <div class="article-top" style="border-color:var(--accent2)"></div>
+        <div class="article-inner">
+          <div class="article-meta">
+            <span class="badge" style="background:rgba(255,79,123,.12);color:var(--accent2);border:1px solid rgba(255,79,123,.3)">🚨 Incident · 11 March 2026</span>
+            <span class="badge badge-muted">Endpoint Security</span>
+            <span class="badge badge-muted">Microsoft Sentinel · KQL</span>
+          </div>
+          <h3 class="article-title">When Intune Becomes a Weapon — The Stryker Attack and What It Changes</h3>
+          <p class="article-desc">
+            80,000–200,000 devices wiped. 50 TB exfiltrated. Zero malware. Just Microsoft Intune — their own tool. Full anatomy of the AiTM attack, concrete action plan, 4 production-ready Sentinel KQL rules, and a SOAR Logic App playbook to disable a compromised account in under 60 seconds.
+          </p>
+          <div class="article-stats">
+            <span>4 KQL rules</span>
+            <span>SOAR playbook</span>
+            <span>9-control checklist</span>
+            <span>Multi-Admin Approval</span>
+          </div>
+          <div class="article-cta" style="color:var(--accent2)">
+            Read the article
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </a>
+
     <!-- Article 1 — VDI -->
-    <a href="vdi-comparison-linkedin-en.html" style="text-decoration:none;display:block;margin-bottom:20px;">
+    <a href="vdi-comparison-linkedin-en.html" style="text-decoration:none;display:block;">
       <div class="article-card">
         <div class="article-top" style="border-color:var(--accent)"></div>
         <div class="article-inner">
@@ -502,38 +503,8 @@
             <span>60 TB PST</span>
             <span>14 sections</span>
           </div>
-          <div class="article-cta">
+          <div class="article-cta" style="color:var(--accent)">
             Read the full article
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-      </div>
-    </a>
-
-    <!-- Article 2 — Stryker -->
-    <a href="stryker-intune-attack.html" style="text-decoration:none;display:block;">
-      <div class="article-card">
-        <div class="article-top" style="border-color:var(--accent2)"></div>
-        <div class="article-inner">
-          <div class="article-meta">
-            <span class="badge badge-red">🚨 Incident · 11 mars 2026</span>
-            <span class="badge badge-orange">Endpoint Security</span>
-            <span class="badge badge-muted">Microsoft Sentinel · KQL</span>
-          </div>
-          <h3 class="article-title">When Intune Becomes a Weapon — The Stryker Attack and What It Changes</h3>
-          <p class="article-desc">
-            80,000–200,000 devices wiped. 50 TB exfiltrated. Zero malware. Just Microsoft Intune — their own tool. Full anatomy of the AiTM attack, concrete action plan, 4 production-ready Sentinel KQL rules, and a SOAR Logic App playbook to disable a compromised account in under 60 seconds.
-          </p>
-          <div class="article-stats">
-            <span>4 règles KQL</span>
-            <span>Playbook SOAR</span>
-            <span>Checklist 9 contrôles</span>
-            <span>Multi-Admin Approval</span>
-          </div>
-          <div class="article-cta" style="color:var(--accent2)">
-            Read the article
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -543,15 +514,19 @@
     </a>
   </section>
 
-  <!-- HIGHLIGHT -->
+  <!-- HIGHLIGHT QUOTES -->
   <section class="section">
-    <div class="highlight">
-      <p>"WorkSpaces got Teams VDI2/Slimcore before AVD and Citrix finish migrating away from legacy WebRTC. The platform race is more open than the benchmarks suggest."</p>
-      <div class="highlight-source">// From the VDI article · Teams VDI2 TAP participant · Feb 2026</div>
+    <div class="highlight" style="border-left-color:var(--dprk);margin-bottom:16px;">
+      <p>"StoatWaffle marks a paradigm shift. The developer workstation and IDE are now primary attack vectors — and the trust model developers extend to their own tools is being weaponized at scale by a DPRK-linked actor."</p>
+      <div class="highlight-source">// StoatWaffle article · Threat Intel · March 2026</div>
     </div>
-    <div class="highlight" style="border-left-color:var(--accent2);margin-top:16px;">
+    <div class="highlight" style="border-left-color:var(--accent2);margin-bottom:16px;">
       <p>"The Stryker attack is not a technological curiosity. Endpoint management tools have become a critical attack surface — on par with VPNs and Active Directory. The gap is in the configuration."</p>
-      <div class="highlight-source">// From the Stryker article · Endpoint Security · March 2026</div>
+      <div class="highlight-source">// Stryker article · Endpoint Security · March 2026</div>
+    </div>
+    <div class="highlight" style="border-left-color:var(--accent3);">
+      <p>"WorkSpaces got Teams VDI2/Slimcore before AVD and Citrix finish migrating away from legacy WebRTC. The platform race is more open than the benchmarks suggest."</p>
+      <div class="highlight-source">// VDI article · Teams VDI2 TAP participant · Feb 2026</div>
     </div>
   </section>
 
@@ -563,7 +538,9 @@
     <span>AL Conseil</span> · Technical Architecture & Cloud Migration
   </div>
   <div class="footer-links">
-    <a href="vdi-comparison-linkedin-en.html">Full article</a>
+    <a href="stoatwaffle_article.html">StoatWaffle</a>
+    <a href="stryker-intune-attack.html">Stryker</a>
+    <a href="vdi-comparison-linkedin-en.html">VDI</a>
     <a href="https://www.linkedin.com/in/" target="_blank" rel="noopener">LinkedIn</a>
     <a href="https://github.com/alconseil" target="_blank" rel="noopener">GitHub</a>
   </div>
