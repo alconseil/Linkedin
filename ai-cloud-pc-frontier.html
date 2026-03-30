@@ -542,7 +542,101 @@ AI-enabled features (Frontier) : <span class="val">Enable</span>
     <strong>3. Diagnostic data :</strong> Activer l'envoi de données de diagnostic optionnelles (requis pour l'indexation sémantique). À documenter dans votre DPIA si vous êtes soumis au RGPD.<br>
     <strong>4. Recall absent :</strong> La feature de "mémoire" des sessions n'est pas disponible sur Cloud PC — l'inférence locale remain requise pour cette workload.
   </div>
-  <p>À surveiller également : la convergence avec <strong>Windows 365 for Agents</strong>, annoncé en parallèle, qui permettra à terme à des agents IA autonomes de s'exécuter sur des Cloud PCs — ouvrant la voie à des automatisations enterprise à grande échelle, sans infrastructure dédiée.</p>
+  <p>Ces points sont valables pour les Cloud PCs <em>humains</em>. Mais la convergence avec <strong>Windows 365 for Agents</strong> introduit une dimension supplémentaire à anticiper dès maintenant.</p>
+
+</section>
+
+<div class="divider"></div>
+
+<!-- 09 FR -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">09</span><h2>Windows 365 for Agents : le piège des identités agentiques dans Intune</h2></div>
+
+  <p>Windows 365 for Agents permet à des <strong>CUA (Computer Use Agents)</strong> créés avec Copilot Studio de s'exécuter sur des Cloud PCs sécurisés, Entra-joinés et Intune-enrollés. L'objectif : des agents IA autonomes capables d'ouvrir des apps, traiter des données et automatiser des workflows — sans infrastructure dédiée.</p>
+  <p>Mais lorsqu'on mélange Cloud PCs humains et Cloud PCs agentiques dans le même tenant, une subtilité d'implémentation peut bloquer vos politiques Intune.</p>
+
+  <h3>Les 3 objets Entra créés par chaque agent Copilot Studio</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Objet Entra</th><th>Type</th><th>Rôle</th><th>Visible dans Intune ?</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Agent blueprint</strong></td>
+          <td><span class="badge b-purple" style="font-size:11px;">App Registration</span></td>
+          <td>Template de l'agent — définit permissions, scopes Graph, config auth</td>
+          <td><span style="color:var(--muted)">Non</span></td>
+        </tr>
+        <tr>
+          <td><strong>Agentic app instance</strong></td>
+          <td><span class="badge b-amber" style="font-size:11px;">Service Principal</span></td>
+          <td>Identité runtime pour l'authentification — credentials fédérés Teams</td>
+          <td><span style="color:var(--accent4)">⚠ Oui — comme SP</span></td>
+        </tr>
+        <tr>
+          <td><strong>Agentic user</strong></td>
+          <td><span class="badge b-green" style="font-size:11px;">User (idtyp=user)</span></td>
+          <td>Identité visible dans l'org — peut avoir mailbox, OneDrive, licence M365</td>
+          <td><span style="color:var(--accent3)">Partiel</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout c-amber">
+    <span class="cl">⚠️ Le problème concret</span>
+    Quand Intune cherche à cibler un agent, il rencontre <strong>l'agentic app instance</strong> — un Service Principal. Or Intune gère ses politiques de provisioning via des groupes d'<em>utilisateurs</em> ou de <em>devices</em>, pas via des Service Principals. Le ciblage ne s'applique pas correctement si la membership est gérée directement depuis Intune.
+  </div>
+
+  <h3>La recommandation : gérer dans Entra, cibler depuis Intune</h3>
+  <div class="code-block">
+    <div class="code-lbl">Architecture de gestion recommandée</div>
+    <pre><span class="cmt"># Flux recommandé ─────────────────────────────────────────────</span>
+
+<span class="fn">Copilot Studio</span>  →  crée  →  <span class="kw">Agentic User</span> (idtyp=user)
+                              ↓
+                    <span class="fn">Entra ID</span>  →  groupe  →  <span class="str">"All Agentic Users"</span>
+                              ou groupe de sécurité dédié
+                              ↓
+                    <span class="fn">Intune</span>  →  cible ce groupe  →  politiques W365 for Agents
+
+<span class="cmt"># À ÉVITER ────────────────────────────────────────────────────</span>
+<span class="cmt"># Gérer la membership directement dans Intune</span>
+<span class="cmt"># → Intune voit le Service Principal, pas l'Agentic User</span>
+<span class="cmt"># → Les politiques de provisioning Cloud PC ne s'appliquent pas</span>
+
+<span class="cmt"># Vérification : l'agentic user a bien idtyp=user dans son token</span>
+<span class="cmt"># Pas de credentials traditionnels (password, passkey, MFA factors)</span>
+<span class="cmt"># Exempt des politiques MFA — à prévoir dans les CA policies</span></pre>
+  </div>
+
+  <div class="priv-grid">
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot dg"></span>Agentic User — caractéristiques</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Token avec <code>idtyp=user</code> — se comporte comme un user</li>
+        <li><span class="ck">✓</span>Peut être ajouté au groupe <strong>"All Agentic Users"</strong></li>
+        <li><span class="ck">✓</span>Assignable à une licence M365 E5, Teams, Copilot</li>
+        <li><span class="ck">✓</span>Visible dans l'organigramme et les People Cards</li>
+        <li><span class="wn">⚠</span>Aucun credential traditionnel — MFA exempt</li>
+        <li><span class="wn">⚠</span>Lié de façon immuable à son agentic app instance</li>
+      </ul>
+    </div>
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot da"></span>Intune — état actuel (preview)</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Cloud PCs agentiques visibles : Devices → Windows 365 (filtre partner)</li>
+        <li><span class="ck">✓</span>Entra-joinés et Intune-enrollés comme les Cloud PCs humains</li>
+        <li><span class="wn">⚠</span>Identités agentiques affichées comme <strong>Service Principals</strong></li>
+        <li><span class="wn">⚠</span>Membership de groupe à gérer depuis <strong>Entra</strong>, pas Intune</li>
+        <li><span class="wn">⚠</span>Pas d'assignation directe de politiques via l'identité agentique</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout c-green">
+    <span class="cl">✅ Bonne pratique opérationnelle</span>
+    Créer des <strong>groupes de sécurité Entra dédiés</strong> par type d'agent (ex. <code>GRP-W365-Agents-CopilotStudio</code>, <code>GRP-W365-Agents-ProjectOpal</code>) en y ajoutant les <em>agentic users</em> (pas les service principals). Cibler ces groupes depuis Intune pour appliquer les politiques Windows 365 for Agents. Cette séparation humain/agentique est critique dès que votre tenant héberge les deux types de Cloud PCs simultanément.
+  </div>
 
   <div class="tag-strip">
     <span class="tag">#Windows365</span>
@@ -557,6 +651,9 @@ AI-enabled features (Frontier) : <span class="val">Enable</span>
     <span class="tag">#CloudPC</span>
     <span class="tag">#GDPR</span>
     <span class="tag">#EUDB</span>
+    <span class="tag">#W365ForAgents</span>
+    <span class="tag">#AgentID</span>
+    <span class="tag">#CopilotStudio</span>
   </div>
 </section>
 
@@ -940,7 +1037,101 @@ AI-enabled features (Frontier) : <span class="val">Enable</span>
     <strong>3. Diagnostic data:</strong> Optional diagnostic data must be enabled (required for semantic indexing). Document in your DPIA if subject to GDPR.<br>
     <strong>4. Recall absent:</strong> The session "memory" feature is not available on Cloud PC — local NPU inference remains required for this workload.
   </div>
-  <p>Also worth monitoring: the convergence with <strong>Windows 365 for Agents</strong>, announced in parallel, which will eventually allow autonomous AI agents to run on Cloud PCs — enabling large-scale enterprise automation without dedicated infrastructure.</p>
+  <p>These points apply to <em>human</em> Cloud PCs. But the convergence with <strong>Windows 365 for Agents</strong> introduces an additional dimension to plan for today.</p>
+
+</section>
+
+<div class="divider"></div>
+
+<!-- 09 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">09</span><h2>Windows 365 for Agents: the agentic identity trap in Intune</h2></div>
+
+  <p>Windows 365 for Agents allows <strong>CUAs (Computer Use Agents)</strong> built with Copilot Studio to run on secure, Entra-joined, Intune-enrolled Cloud PCs. The goal: autonomous AI agents that can open apps, process data, and automate workflows — without dedicated infrastructure.</p>
+  <p>But when you mix human Cloud PCs and agent Cloud PCs in the same tenant, an implementation subtlety can break your Intune policies entirely.</p>
+
+  <h3>The 3 Entra objects created per Copilot Studio agent</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Entra Object</th><th>Type</th><th>Role</th><th>Visible in Intune?</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Agent blueprint</strong></td>
+          <td><span class="badge b-purple" style="font-size:11px;">App Registration</span></td>
+          <td>Agent template — defines Graph permissions, scopes, auth config</td>
+          <td><span style="color:var(--muted)">No</span></td>
+        </tr>
+        <tr>
+          <td><strong>Agentic app instance</strong></td>
+          <td><span class="badge b-amber" style="font-size:11px;">Service Principal</span></td>
+          <td>Runtime identity for authentication — federated Teams credentials</td>
+          <td><span style="color:var(--accent4)">⚠ Yes — as SP</span></td>
+        </tr>
+        <tr>
+          <td><strong>Agentic user</strong></td>
+          <td><span class="badge b-green" style="font-size:11px;">User (idtyp=user)</span></td>
+          <td>Org-visible identity — can hold mailbox, OneDrive, M365 license</td>
+          <td><span style="color:var(--accent3)">Partial</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout c-amber">
+    <span class="cl">⚠️ The concrete problem</span>
+    When Intune tries to target an agent, it encounters the <strong>agentic app instance</strong> — a Service Principal. But Intune drives its provisioning policies through <em>user</em> or <em>device</em> groups, not Service Principals. Targeting breaks if group membership is managed directly from Intune rather than from Entra.
+  </div>
+
+  <h3>The recommendation: manage in Entra, target from Intune</h3>
+  <div class="code-block">
+    <div class="code-lbl">Recommended management architecture</div>
+    <pre><span class="cmt"># Recommended flow ─────────────────────────────────────────────</span>
+
+<span class="fn">Copilot Studio</span>  →  creates  →  <span class="kw">Agentic User</span> (idtyp=user)
+                                ↓
+                      <span class="fn">Entra ID</span>  →  group  →  <span class="str">"All Agentic Users"</span>
+                                or dedicated security group
+                                ↓
+                      <span class="fn">Intune</span>  →  targets group  →  W365 for Agents policies
+
+<span class="cmt"># AVOID ────────────────────────────────────────────────────────</span>
+<span class="cmt"># Managing group membership directly from Intune</span>
+<span class="cmt"># → Intune sees the Service Principal, not the Agentic User</span>
+<span class="cmt"># → Cloud PC provisioning policies don't apply correctly</span>
+
+<span class="cmt"># Validation: agentic user token must have idtyp=user</span>
+<span class="cmt"># No traditional credentials (password, passkey, MFA factors)</span>
+<span class="cmt"># MFA-exempt — plan your Conditional Access policies accordingly</span></pre>
+  </div>
+
+  <div class="priv-grid">
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot dg"></span>Agentic User — key properties</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Token with <code>idtyp=user</code> — behaves like a user object</li>
+        <li><span class="ck">✓</span>Can be added to <strong>"All Agentic Users"</strong> group</li>
+        <li><span class="ck">✓</span>Assignable to M365 E5, Teams, Copilot licenses</li>
+        <li><span class="ck">✓</span>Visible in org chart and People Cards</li>
+        <li><span class="wn">⚠</span>No traditional credentials — MFA exempt by design</li>
+        <li><span class="wn">⚠</span>Immutably bound to its parent agentic app instance</li>
+      </ul>
+    </div>
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot da"></span>Intune — current state (preview)</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Agent Cloud PCs visible: Devices → Windows 365 (partner filter)</li>
+        <li><span class="ck">✓</span>Entra-joined and Intune-enrolled like human Cloud PCs</li>
+        <li><span class="wn">⚠</span>Agentic identities displayed as <strong>Service Principals</strong></li>
+        <li><span class="wn">⚠</span>Group membership must be managed from <strong>Entra</strong>, not Intune</li>
+        <li><span class="wn">⚠</span>No direct policy assignment via agentic identity in Intune</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout c-green">
+    <span class="cl">✅ Operational best practice</span>
+    Create <strong>dedicated Entra security groups</strong> per agent type (e.g. <code>GRP-W365-Agents-CopilotStudio</code>, <code>GRP-W365-Agents-ProjectOpal</code>) and populate them with <em>agentic users</em> (not service principals). Target these groups from Intune to apply Windows 365 for Agents policies. This human/agent separation is critical as soon as your tenant hosts both types of Cloud PCs simultaneously.
+  </div>
 
   <div class="tag-strip">
     <span class="tag">#Windows365</span>
@@ -955,6 +1146,9 @@ AI-enabled features (Frontier) : <span class="val">Enable</span>
     <span class="tag">#CloudPC</span>
     <span class="tag">#GDPR</span>
     <span class="tag">#EUDB</span>
+    <span class="tag">#W365ForAgents</span>
+    <span class="tag">#AgentID</span>
+    <span class="tag">#CopilotStudio</span>
   </div>
 </section>
 
