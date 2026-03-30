@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intune RBAC — Ce qui va changer en 2026 | Thomas Andres</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #080d14;
+    --surface:   #0e1520;
+    --surface2:  #141e2e;
+    --border:    #1e2d45;
+    --primary:   #38bdf8;
+    --primary-dim:#1d6e99;
+    --accent:    #f59e0b;
+    --accent2:   #10b981;
+    --danger:    #ef4444;
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --heading:   #f1f5f9;
+    --tag-bg:    #0f2038;
+    --code-bg:   #0a1929;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    min-height: 100vh;
+  }
+
+  /* ─── LANGUAGE TOGGLE ─── */
+  .lang-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(8,13,20,.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 40px;
+  }
+  .lang-bar span { font-size: 12px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; }
+  .lang-btn {
+    padding: 4px 14px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Syne', sans-serif;
+    letter-spacing: .06em;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    transition: all .2s;
+  }
+  .lang-btn.active {
+    background: var(--primary);
+    color: #000;
+    border-color: var(--primary);
+  }
+
+  /* ─── CONTENT VISIBILITY ─── */
+  [data-lang] { display: none; }
+  body.lang-fr [data-lang="fr"] { display: block; }
+  body.lang-en [data-lang="en"] { display: block; }
+  /* inline bilingual spans */
+  [data-inline] { display: none; }
+  body.lang-fr [data-inline="fr"] { display: inline; }
+  body.lang-en [data-inline="en"] { display: inline; }
+
+  /* ─── LAYOUT ─── */
+  .wrapper { max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 64px 48px 52px;
+    background: linear-gradient(135deg, #071525 0%, #0c1f38 50%, #091428 100%);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(56,189,248,.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: 30%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(245,158,11,.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .badge-blue  { color: var(--primary); border-color: var(--primary-dim); background: rgba(56,189,248,.07); }
+  .badge-amber { color: var(--accent);  border-color: rgba(245,158,11,.3); background: rgba(245,158,11,.07); }
+  .badge-green { color: var(--accent2); border-color: rgba(16,185,129,.3); background: rgba(16,185,129,.07); }
+  .badge-red   { color: var(--danger);  border-color: rgba(239,68,68,.3);  background: rgba(239,68,68,.07); }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(26px, 4vw, 40px);
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--heading);
+    margin-bottom: 16px;
+  }
+  .hero h1 span { color: var(--primary); }
+  .hero-sub {
+    font-size: 15px;
+    color: #94a3b8;
+    max-width: 600px;
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  /* stat pills */
+  .stat-pills {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+  .pill {
+    display: flex;
+    flex-direction: column;
+    background: rgba(14,21,32,.8);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    min-width: 110px;
+  }
+  .pill-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+  }
+  .pill-label {
+    font-size: 10px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  /* author */
+  .author-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+  .author-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-dim), var(--primary));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: #000;
+    flex-shrink: 0;
+  }
+  .author-info { line-height: 1.3; }
+  .author-name { font-weight: 600; font-size: 14px; color: var(--heading); }
+  .author-role { font-size: 12px; color: var(--muted); }
+
+  /* ─── SECTIONS ─── */
+  .section { margin-bottom: 52px; }
+
+  .section-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--primary);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-num::after {
+    content: '';
+    display: block;
+    height: 1px;
+    width: 40px;
+    background: var(--primary-dim);
+  }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(20px, 3vw, 26px);
+    font-weight: 700;
+    color: var(--heading);
+    margin-bottom: 18px;
+    line-height: 1.25;
+  }
+
+  p { margin-bottom: 14px; color: var(--text); }
+
+  /* ─── CALLOUT BOXES ─── */
+  .callout {
+    border-left: 3px solid;
+    padding: 16px 20px;
+    border-radius: 0 8px 8px 0;
+    margin: 24px 0;
+    font-size: 14px;
+  }
+  .callout-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: .04em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .callout.warning {
+    border-color: var(--accent);
+    background: rgba(245,158,11,.06);
+  }
+  .callout.warning .callout-title { color: var(--accent); }
+  .callout.danger {
+    border-color: var(--danger);
+    background: rgba(239,68,68,.06);
+  }
+  .callout.danger .callout-title { color: var(--danger); }
+  .callout.info {
+    border-color: var(--primary);
+    background: rgba(56,189,248,.06);
+  }
+  .callout.info .callout-title { color: var(--primary); }
+  .callout.success {
+    border-color: var(--accent2);
+    background: rgba(16,185,129,.06);
+  }
+  .callout.success .callout-title { color: var(--accent2); }
+
+  /* ─── BREACH TIMELINE ─── */
+  .timeline { margin: 28px 0; }
+  .tl-item {
+    display: flex;
+    gap: 16px;
+    padding-bottom: 20px;
+    position: relative;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 30px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+  .tl-item:last-child::before { display: none; }
+  .tl-dot {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    border: 2px solid;
+    margin-top: 1px;
+  }
+  .tl-dot.red   { border-color: var(--danger);  color: var(--danger);  background: rgba(239,68,68,.1); }
+  .tl-dot.amber { border-color: var(--accent);  color: var(--accent);  background: rgba(245,158,11,.1); }
+  .tl-dot.blue  { border-color: var(--primary); color: var(--primary); background: rgba(56,189,248,.1); }
+  .tl-dot.green { border-color: var(--accent2); color: var(--accent2); background: rgba(16,185,129,.1); }
+  .tl-content { padding-top: 4px; }
+  .tl-date { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .tl-text { font-size: 14px; line-height: 1.55; }
+  .tl-text strong { color: var(--heading); }
+
+  /* ─── BEFORE/AFTER ─── */
+  .ba-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  @media (max-width: 600px) { .ba-grid { grid-template-columns: 1fr; } }
+  .ba-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    background: var(--surface);
+  }
+  .ba-card h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .ba-card.before h4 { color: var(--danger); }
+  .ba-card.after  h4 { color: var(--accent2); }
+  .ba-card ul { list-style: none; }
+  .ba-card ul li {
+    font-size: 13px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(30,45,69,.5);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.45;
+  }
+  .ba-card ul li:last-child { border-bottom: none; }
+  .ba-card.before ul li::before { content: '✗'; color: var(--danger); flex-shrink: 0; margin-top: 1px; }
+  .ba-card.after  ul li::before { content: '✓'; color: var(--accent2); flex-shrink: 0; margin-top: 1px; }
+
+  /* ─── CODE BLOCKS ─── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 20px 0;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: rgba(255,255,255,.03);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .code-lang {
+    color: var(--primary);
+    font-weight: 500;
+  }
+  .code-body {
+    padding: 18px 20px;
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-x: auto;
+  }
+  .code-body .kw   { color: #7dd3fc; }
+  .code-body .fn   { color: #a5f3fc; }
+  .code-body .str  { color: #86efac; }
+  .code-body .cmt  { color: #475569; font-style: italic; }
+  .code-body .var  { color: #fde68a; }
+  .code-body .op   { color: #94a3b8; }
+  .code-body .num  { color: #fb923c; }
+
+  /* ─── PRIORITY GRID ─── */
+  .priority-grid { margin: 24px 0; }
+  .pg-row {
+    display: grid;
+    grid-template-columns: 100px 1fr auto;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pg-row:first-child {
+    background: var(--surface2);
+    border-radius: 8px 8px 0 0;
+  }
+  .pg-cell {
+    padding: 11px 16px;
+    font-size: 13px;
+    border-right: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+  }
+  .pg-cell:last-child { border-right: none; }
+  .pg-row:first-child .pg-cell {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .pg-row:last-child { border-radius: 0 0 8px 8px; overflow: hidden; }
+  .prio-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    padding: 2px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .prio-critical { background: rgba(239,68,68,.15);  color: var(--danger);  border: 1px solid rgba(239,68,68,.3); }
+  .prio-high     { background: rgba(245,158,11,.12); color: var(--accent);  border: 1px solid rgba(245,158,11,.3); }
+  .prio-medium   { background: rgba(56,189,248,.1);  color: var(--primary); border: 1px solid rgba(56,189,248,.25); }
+
+  /* ─── SECTION DIVIDER ─── */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 44px 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border));
+  }
+  .divider::after { background: linear-gradient(90deg, var(--border), transparent); }
+  .divider-icon {
+    width: 8px; height: 8px;
+    background: var(--primary-dim);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ─── FLOW DIAGRAM ─── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 24px 0;
+  }
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    position: relative;
+  }
+  .flow-arrow {
+    text-align: center;
+    color: var(--border);
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 0;
+  }
+  .flow-n {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary);
+    background: rgba(56,189,248,.1);
+    border: 1px solid var(--primary-dim);
+    border-radius: 4px;
+    padding: 2px 8px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .flow-text strong { color: var(--heading); }
+  .flow-text small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  /* ─── HIGHLIGHT QUOTE ─── */
+  .highlight-quote {
+    text-align: center;
+    padding: 36px 32px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin: 40px 0;
+    position: relative;
+  }
+  .highlight-quote::before {
+    content: '"';
+    position: absolute;
+    top: 10px; left: 24px;
+    font-family: 'Syne', sans-serif;
+    font-size: 60px;
+    color: var(--primary-dim);
+    line-height: 1;
+  }
+  .highlight-quote p {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(16px, 2.5vw, 20px);
+    font-weight: 600;
+    color: var(--heading);
+    line-height: 1.5;
+    margin: 0;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  .highlight-quote cite {
+    display: block;
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-style: normal;
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    margin-top: 64px;
+    padding: 32px 0 0;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: gap;
+    gap: 12px;
+  }
+  .footer-left { font-size: 13px; color: var(--muted); }
+  .footer-left strong { color: var(--text); }
+  .footer-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .footer-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 3px;
+    background: var(--tag-bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+</style>
+</head>
+<body class="lang-fr">
+
+<!-- LANGUAGE BAR -->
+<div class="lang-bar">
+  <span>Read in</span>
+  <button class="lang-btn active" onclick="setLang('fr')">🇫🇷 FR</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="wrapper" style="padding-top:0;padding-bottom:0;">
+    <div class="hero-eyebrow">
+      <span class="badge badge-blue">Microsoft Intune</span>
+      <span class="badge badge-amber">RBAC · 2026</span>
+      <span class="badge badge-red">Breaking Change</span>
+      <span class="badge badge-green">In Development</span>
+    </div>
+
+    <h1 data-lang="fr">
+      Intune RBAC : <span>ce qui va changer</span><br>et pourquoi ça n'attend pas
+    </h1>
+    <h1 data-lang="en" style="display:none;">
+      Intune RBAC: <span>What's About to Change</span><br>And Why It Can't Wait
+    </h1>
+
+    <p class="hero-sub" data-lang="fr">
+      Découplage des scope tags, Multi-Admin Approval étendu aux rôles, PIM obligatoire pour les accès privilégiés — Microsoft accélère la sécurisation de son modèle RBAC. Voici ce que tout architecte Intune doit mettre en œuvre maintenant.
+    </p>
+    <p class="hero-sub" data-lang="en" style="display:none;">
+      Scope tag decoupling, Multi-Admin Approval extended to RBAC changes, PIM mandatory for privileged access — Microsoft is hardening its RBAC model fast. Here's what every Intune architect needs to act on right now.
+    </p>
+
+    <div class="stat-pills">
+      <div class="pill">
+        <span class="pill-num">80K</span>
+        <span class="pill-label"><span data-inline="fr">Appareils wipés</span><span data-inline="en">Devices wiped</span></span>
+      </div>
+      <div class="pill">
+        <span class="pill-num">1</span>
+        <span class="pill-label"><span data-inline="fr">Compte compromis</span><span data-inline="en">Compromised account</span></span>
+      </div>
+      <div class="pill">
+        <span class="pill-num">3</span>
+        <span class="pill-label"><span data-inline="fr">Changements majeurs</span><span data-inline="en">Major changes</span></span>
+      </div>
+      <div class="pill">
+        <span class="pill-num">~0</span>
+        <span class="pill-label"><span data-inline="fr">Délai pour agir</span><span data-inline="en">Time to act</span></span>
+      </div>
+    </div>
+
+    <div class="author-line">
+      <div class="author-avatar">TA</div>
+      <div class="author-info">
+        <div class="author-name">Thomas Andres</div>
+        <div class="author-role">Senior IT Infrastructure Architect · AL-Conseil</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div class="wrapper">
+
+  <!-- ─── SECTION 1 : CONTEXTE ─── -->
+  <div class="section">
+    <div class="section-num">01</div>
+    <h2 data-lang="fr">Le signal d'alarme : 80 000 appareils effacés en une nuit</h2>
+    <h2 data-lang="en">The Wake-Up Call: 80,000 Devices Wiped in One Night</h2>
+
+    <p data-lang="fr">
+      Le 11 mars 2026, une grande entreprise medtech américaine a subi l'une des attaques sur infrastructure Microsoft Intune les plus destructrices jamais documentées. Pas de malware. Pas de ransomware. Les attaquants ont compromis un seul compte administrateur, créé un nouveau Global Administrator, et utilisé la commande <strong>Remote Wipe</strong> native d'Intune pour effacer l'intégralité du parc — 80 000 terminaux — en pleine nuit.
+    </p>
+    <p data-lang="en">
+      On March 11, 2026, a major U.S. medtech corporation suffered one of the most destructive attacks ever documented against a Microsoft Intune environment. No malware. No ransomware. Attackers compromised a single administrator account, created a new Global Administrator, and used Intune's native <strong>Remote Wipe</strong> command to erase an entire fleet — 80,000 endpoints — overnight.
+    </p>
+
+    <div class="callout danger" data-lang="fr">
+      <div class="callout-title">⚡ Ce que cela révèle</div>
+      Sans modèle RBAC durci, un seul compte compromis suffit à détruire l'ensemble du parc managé. La surface d'attaque n'est pas dans la configuration des endpoints — elle est dans vos <strong>rôles et permissions d'administration</strong>.
+    </div>
+    <div class="callout danger" data-lang="en">
+      <div class="callout-title">⚡ What This Reveals</div>
+      Without a hardened RBAC model, a single compromised account is enough to destroy your entire managed fleet. The attack surface is not in endpoint configuration — it's in your <strong>administrative roles and permissions</strong>.
+    </div>
+
+    <div class="timeline" data-lang="fr">
+      <div class="tl-item">
+        <div class="tl-dot red">J0</div>
+        <div class="tl-content">
+          <div class="tl-date">11 mars 2026 — 02h14</div>
+          <div class="tl-text"><strong>Compromission</strong> d'un compte admin via phishing ciblé. Absence de MFA résistant au phishing.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot red">+12m</div>
+        <div class="tl-content">
+          <div class="tl-date">02h26</div>
+          <div class="tl-text"><strong>Création d'un Global Administrator</strong> de secours par l'attaquant dans Entra ID. Aucune approbation requise.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot red">+38m</div>
+        <div class="tl-content">
+          <div class="tl-date">03h04</div>
+          <div class="tl-text"><strong>Lancement du wipe massif</strong> via l'API Graph Intune. 80 000 appareils ciblés. Aucune confirmation secondaire requise.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot amber">J+3</div>
+        <div class="tl-content">
+          <div class="tl-date">14 mars 2026</div>
+          <div class="tl-text"><strong>Microsoft publie un guide de hardening</strong> Intune en réponse directe à l'incident.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot blue">J+7</div>
+        <div class="tl-content">
+          <div class="tl-date">18 mars 2026</div>
+          <div class="tl-text"><strong>CISA advisory urgente</strong> recommandant l'activation immédiate du Multi-Admin Approval sur les actions destructives.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline" data-lang="en">
+      <div class="tl-item">
+        <div class="tl-dot red">D0</div>
+        <div class="tl-content">
+          <div class="tl-date">March 11, 2026 — 02:14 AM</div>
+          <div class="tl-text"><strong>Admin account compromised</strong> via targeted phishing. No phishing-resistant MFA in place.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot red">+12m</div>
+        <div class="tl-content">
+          <div class="tl-date">02:26 AM</div>
+          <div class="tl-text"><strong>Attacker creates a backdoor Global Administrator</strong> in Entra ID. No approval required.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot red">+38m</div>
+        <div class="tl-content">
+          <div class="tl-date">03:04 AM</div>
+          <div class="tl-text"><strong>Mass wipe initiated</strong> via Graph API. 80,000 devices targeted. No secondary confirmation required.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot amber">D+3</div>
+        <div class="tl-content">
+          <div class="tl-date">March 14, 2026</div>
+          <div class="tl-text"><strong>Microsoft publishes Intune hardening guide</strong> in direct response to the incident.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot blue">D+7</div>
+        <div class="tl-content">
+          <div class="tl-date">March 18, 2026</div>
+          <div class="tl-text"><strong>CISA urgent advisory</strong> recommending immediate enablement of Multi-Admin Approval on destructive actions.</div>
+        </div>
+      </div>
+    </div>
+
+    <p data-lang="fr" style="font-size:13px; color:var(--muted);">
+      💡 J'avais analysé un vecteur d'attaque similaire dans mon article sur <a href="#" style="color:var(--primary);">la brèche Stryker/Intune</a> — les fondamentaux sont identiques : un accès privilégié non contraint est une bombe à retardement.
+    </p>
+    <p data-lang="en" style="font-size:13px; color:var(--muted);">
+      💡 I covered a similar attack vector in my previous article on the <a href="#" style="color:var(--primary);">Stryker/Intune breach</a> — the fundamentals are identical: an unconstrained privileged account is a time bomb.
+    </p>
+  </div>
+
+  <div class="divider"><div class="divider-icon"></div></div>
+
+  <!-- ─── SECTION 2 : PROBLÈME RBAC ─── -->
+  <div class="section">
+    <div class="section-num">02</div>
+    <h2 data-lang="fr">Le problème actuel : la fusion silencieuse des permissions</h2>
+    <h2 data-lang="en">The Current Problem: Silent Permission Merging</h2>
+
+    <p data-lang="fr">
+      Le modèle RBAC Intune repose sur trois piliers : le <strong>rôle</strong> (ce que l'admin peut faire), le <strong>scope group</strong> (sur quels objets il peut agir) et le <strong>scope tag</strong> (ce qu'il peut voir). En théorie, c'est un modèle de moindre privilège robuste. En pratique, il existe un comportement non documenté qui crée une dérive systématique des permissions.
+    </p>
+    <p data-lang="en">
+      Intune's RBAC model rests on three pillars: the <strong>role</strong> (what the admin can do), the <strong>scope group</strong> (which objects they can act on), and the <strong>scope tag</strong> (what they can see). In theory, it's a solid least-privilege model. In practice, an undocumented behavior creates systematic permission drift.
+    </p>
+
+    <div class="callout warning" data-lang="fr">
+      <div class="callout-title">⚠️ Comportement actuel non documenté</div>
+      Quand un admin est membre de <strong>plusieurs role assignments</strong> portant sur la même ressource mais avec des scope tags différents, Intune <strong>fusionne les permissions de manière additive</strong>. Un admin qui a le rôle "Policy Manager" sur le scope tag EMEA et "Help Desk Operator" sur le scope tag APAC peut involontairement se retrouver avec des droits d'écriture sur les politiques APAC — ce qui n'était pas l'intention.
+    </div>
+    <div class="callout warning" data-lang="en">
+      <div class="callout-title">⚠️ Current Undocumented Behavior</div>
+      When an admin belongs to <strong>multiple role assignments</strong> covering the same resource but with different scope tags, Intune <strong>merges permissions additively</strong>. An admin with "Policy Manager" on the EMEA scope tag and "Help Desk Operator" on the APAC scope tag may unintentionally end up with write access to APAC policies — which was never the intent.
+    </div>
+
+    <div class="ba-grid">
+      <div class="ba-card before">
+        <h4 data-lang="fr">Comportement Actuel</h4>
+        <h4 data-lang="en">Current Behavior</h4>
+        <ul>
+          <li data-lang="fr">Permissions fusionnées entre role assignments</li>
+          <li data-lang="en">Permissions merged across role assignments</li>
+          <li data-lang="fr">Accès implicites non visibles dans l'UI</li>
+          <li data-lang="en">Implicit access not visible in the UI</li>
+          <li data-lang="fr">Scope tags inefficaces si rôles croisés</li>
+          <li data-lang="en">Scope tags ineffective with overlapping roles</li>
+          <li data-lang="fr">Impossible d'auditer le périmètre réel</li>
+          <li data-lang="en">Impossible to audit actual permission scope</li>
+        </ul>
+      </div>
+      <div class="ba-card after">
+        <h4 data-lang="fr">Après Découplage</h4>
+        <h4 data-lang="en">After Decoupling</h4>
+        <ul>
+          <li data-lang="fr">Permissions strictement par rôle + scope tag</li>
+          <li data-lang="en">Permissions strictly per role + scope tag</li>
+          <li data-lang="fr">Périmètre réel auditablevia le nouveau rapport</li>
+          <li data-lang="en">Actual scope auditable via the new report</li>
+          <li data-lang="fr">Least privilege enforcé structurellement</li>
+          <li data-lang="en">Least privilege structurally enforced</li>
+          <li data-lang="fr">Conforme aux recommandations SFI Microsoft</li>
+          <li data-lang="en">Aligned with Microsoft SFI recommendations</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-icon"></div></div>
+
+  <!-- ─── SECTION 3 : DÉCOUPLAGE ─── -->
+  <div class="section">
+    <div class="section-num">03</div>
+    <h2 data-lang="fr">Le découplage des scope tags — La migration à préparer</h2>
+    <h2 data-lang="en">Scope Tag Decoupling — The Migration to Prepare For</h2>
+
+    <p data-lang="fr">
+      Microsoft a annoncé une <strong>action one-shot de découplage</strong> dans la page "In Development" d'Intune. Le principe : une fois activée, les permissions ne seront plus fusionnées entre role assignments — elles seront strictement appliquées par couple <em>rôle + scope tag</em>.
+    </p>
+    <p data-lang="en">
+      Microsoft has announced a <strong>one-shot decoupling action</strong> in Intune's "In Development" page. The principle: once activated, permissions will no longer be merged across role assignments — they will be strictly enforced per <em>role + scope tag</em> pair.
+    </p>
+
+    <div class="flow">
+      <div class="flow-step">
+        <span class="flow-n">01</span>
+        <div class="flow-text">
+          <strong data-lang="fr">Accéder au Permissions Assessment Report</strong>
+          <strong data-lang="en">Access the Permissions Assessment Report</strong>
+          <small data-lang="fr">Tenant administration → Roles → Permissions Assessment. Disponible avant l'activation du découplage.</small>
+          <small data-lang="en">Tenant administration → Roles → Permissions Assessment. Available before the decoupling action.</small>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="flow-n">02</span>
+        <div class="flow-text">
+          <strong data-lang="fr">Analyser les deltas de permission</strong>
+          <strong data-lang="en">Analyze permission deltas</strong>
+          <small data-lang="fr">Le rapport affiche les permissions actuelles vs post-découplage pour chaque admin. Identifier les accès implicites qui seront supprimés.</small>
+          <small data-lang="en">The report shows current vs post-decoupling permissions for each admin. Identify implicit access that will be removed.</small>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="flow-n">03</span>
+        <div class="flow-text">
+          <strong data-lang="fr">Ajuster les role assignments</strong>
+          <strong data-lang="en">Adjust role assignments</strong>
+          <small data-lang="fr">Créer les assignments manquants ou corriger les scope tags sur les ressources concernées. Itérer jusqu'à stabilisation.</small>
+          <small data-lang="en">Create missing assignments or fix scope tags on affected resources. Iterate until stable.</small>
+        </div>
+      </div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">
+        <span class="flow-n">04</span>
+        <div class="flow-text">
+          <strong data-lang="fr">Activer le découplage</strong>
+          <strong data-lang="en">Activate the decoupling</strong>
+          <small data-lang="fr">Action irréversible. Documenter l'état avant bascule. Tester sur un tenant de dev en premier.</small>
+          <small data-lang="en">This action is irreversible. Document the pre-migration state. Test on a dev tenant first.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info" data-lang="fr">
+      <div class="callout-title">📋 Pour les MSP et multi-tenant</div>
+      Si vous gérez plusieurs tenants clients (AXA, Allianz, opcos multiples), <strong>chaque tenant doit être audité indépendamment</strong>. La fusion additive est particulièrement risquée dans les architectures avec Administrative Units par entité, où un admin transversal peut avoir des rôles croisés non anticipés.
+    </div>
+    <div class="callout info" data-lang="en">
+      <div class="callout-title">📋 For MSPs and Multi-Tenant Environments</div>
+      If you manage multiple client tenants, <strong>each tenant must be audited independently</strong>. Additive merging is especially dangerous in architectures with Administrative Units per entity, where a cross-entity admin may have unintended role overlaps.
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">PowerShell · Graph API</span>
+        <span data-lang="fr">Audit des role assignments par admin</span>
+        <span data-lang="en">Audit role assignments per admin</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt"># Audit des role assignments croisés — pré-découplage</span>
+<span class="kw">Connect-MgGraph</span> <span class="op">-</span><span class="var">Scopes</span> <span class="str">"DeviceManagementRBAC.Read.All"</span>
+
+<span class="var">$assignments</span> <span class="op">=</span> <span class="kw">Get-MgDeviceManagementRoleAssignment</span> <span class="op">-</span><span class="var">All</span> <span class="op">|</span>
+    <span class="kw">Select-Object</span> <span class="var">DisplayName</span>, <span class="var">RoleDefinitionId</span>, <span class="var">ScopeMembers</span>, <span class="var">ScopeTags</span>
+
+<span class="cmt"># Identifier les admins avec plusieurs assignments</span>
+<span class="var">$memberMap</span> <span class="op">=</span> @{}
+<span class="kw">foreach</span> (<span class="var">$a</span> <span class="kw">in</span> <span class="var">$assignments</span>) {
+    <span class="kw">foreach</span> (<span class="var">$member</span> <span class="kw">in</span> <span class="var">$a</span>.ScopeMembers) {
+        <span class="kw">if</span> (<span class="op">-not</span> <span class="var">$memberMap</span>.ContainsKey(<span class="var">$member</span>)) {
+            <span class="var">$memberMap</span>[<span class="var">$member</span>] <span class="op">=</span> [System.Collections.Generic.List[object]]::new()
+        }
+        <span class="var">$memberMap</span>[<span class="var">$member</span>].Add(<span class="var">$a</span>)
+    }
+}
+
+<span class="cmt"># Afficher les admins avec rôles multiples (risque de permission merge)</span>
+<span class="var">$memberMap</span>.GetEnumerator() <span class="op">|</span>
+    <span class="kw">Where-Object</span> { <span class="var">$_</span>.Value.Count <span class="op">-gt</span> <span class="num">1</span> } <span class="op">|</span>
+    <span class="kw">ForEach-Object</span> {
+        [PSCustomObject]@{
+            AdminId         <span class="op">=</span> <span class="var">$_</span>.Key
+            AssignmentCount <span class="op">=</span> <span class="var">$_</span>.Value.Count
+            Roles           <span class="op">=</span> (<span class="var">$_</span>.Value.DisplayName <span class="op">-join</span> <span class="str">", "</span>)
+            ScopeTags       <span class="op">=</span> (<span class="var">$_</span>.Value.ScopeTags <span class="op">-join</span> <span class="str">", "</span>)
+        }
+    } <span class="op">|</span> <span class="kw">Export-Csv</span> <span class="str">"RBAC_CrossAssignment_Audit.csv"</span> <span class="op">-</span><span class="var">NoTypeInformation</span></pre></div>
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-icon"></div></div>
+
+  <!-- ─── SECTION 4 : MAA ─── -->
+  <div class="section">
+    <div class="section-num">04</div>
+    <h2 data-lang="fr">Multi-Admin Approval étendu — Le principe des 4 yeux pour le RBAC</h2>
+    <h2 data-lang="en">Extended Multi-Admin Approval — Four-Eyes Principle for RBAC</h2>
+
+    <p data-lang="fr">
+      Depuis la mise à jour de <strong>février 2026</strong>, le mécanisme Multi-Admin Approval (MAA) couvre désormais les changements sur les rôles eux-mêmes. Toute modification de role definition, de member assignment ou de scope tag sur un rôle existant nécessite une approbation secondaire.
+    </p>
+    <p data-lang="en">
+      Since the <strong>February 2026</strong> update, the Multi-Admin Approval (MAA) mechanism now covers changes to roles themselves. Any modification to a role definition, member assignment, or scope tag on an existing role requires secondary approval.
+    </p>
+
+    <p data-lang="fr">
+      Ce mécanisme est le dernier verrou de la chaîne. Même si un attaquant accède à la console Intune avec des privilèges complets, il ne peut pas élever ses permissions, créer un nouveau rôle admin, ou modifier un rôle existant sans qu'un second administrateur valide l'action.
+    </p>
+    <p data-lang="en">
+      This mechanism is the last gate in the chain. Even if an attacker reaches the Intune console with full privileges, they cannot elevate permissions, create a new admin role, or modify an existing role without a second administrator approving the action.
+    </p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-lang">Intune Admin Center</span>
+        <span data-lang="fr">Périmètre MAA — Feb 2026</span>
+        <span data-lang="en">MAA Scope — Feb 2026</span>
+      </div>
+      <div class="code-body"><pre><span class="cmt">── Périmètre Multi-Admin Approval (état mars 2026) ──</span>
+
+✅ <span class="var">Device Actions</span>       <span class="cmt"># Wipe, Retire, FreshStart — dès GA</span>
+✅ <span class="var">Scripts</span>              <span class="cmt"># Déploiement PowerShell</span>
+✅ <span class="var">RBAC</span>                 <span class="cmt"># Rôles, permissions, member groups ← NEW</span>
+✅ <span class="var">Access Policies</span>      <span class="cmt"># Modification des politiques MAA elles-mêmes</span>
+✅ <span class="var">Tenant Config</span>        <span class="cmt"># Device categories</span>
+✅ <span class="var">Configuration Policies</span> <span class="cmt"># Settings Catalog ← ajout fév 2026</span>
+✅ <span class="var">Compliance Policies</span>  <span class="cmt"># ← ajout fév 2026</span>
+
+⚠️  <span class="str">IMPORTANT</span> : les access policies pour les nouveaux types
+    ne sont PAS créées automatiquement sur les tenants existants.
+    → Vérifier et créer manuellement si MAA était déjà actif.</pre></div>
+    </div>
+
+    <div class="callout warning" data-lang="fr">
+      <div class="callout-title">🔔 Absence de notifications natives</div>
+      Intune ne notifie pas les approbateurs des nouvelles demandes en attente. Il est <strong>impératif</strong> de construire un workflow de notification : canal Teams dédié, boîte partagée, ou Logic App via Graph API (<code>GET /deviceManagement/privilegedAccess/intune/roleAssignmentRequests?$filter=status eq 'Pending'</code>).
+    </div>
+    <div class="callout warning" data-lang="en">
+      <div class="callout-title">🔔 No Native Notifications</div>
+      Intune does not notify approvers of pending requests. It is <strong>essential</strong> to build a notification workflow: a dedicated Teams channel, a shared mailbox, or a Logic App via Graph API (<code>GET /deviceManagement/privilegedAccess/intune/roleAssignmentRequests?$filter=status eq 'Pending'</code>).
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-icon"></div></div>
+
+  <!-- ─── SECTION 5 : PIM ─── -->
+  <div class="section">
+    <div class="section-num">05</div>
+    <h2 data-lang="fr">PIM pour les rôles Intune — La fin des accès permanents</h2>
+    <h2 data-lang="en">PIM for Intune Roles — The End of Standing Access</h2>
+
+    <p data-lang="fr">
+      Microsoft recommande désormais explicitement de ne plus utiliser le rôle <strong>Intune Administrator</strong> d'Entra ID pour les opérations courantes. Ce rôle accorde des permissions globales en lecture/écriture sur tout Intune et ne peut pas être restreint par les scope tags natifs. La bonne pratique : des rôles Intune RBAC custom scopés, activés via PIM en just-in-time.
+    </p>
+    <p data-lang="en">
+      Microsoft now explicitly recommends against using the <strong>Intune Administrator</strong> Entra ID role for daily operations. This role grants global read/write permissions across all of Intune and cannot be constrained by native scope tags. Best practice: custom-scoped Intune RBAC roles, activated via PIM as just-in-time.
+    </p>
+
+    <div class="ba-grid">
+      <div class="ba-card before">
+        <h4>❌ <span data-lang="fr">À éviter</span><span data-lang="en">Avoid</span></h4>
+        <ul>
+          <li data-lang="fr">Intune Administrator Entra permanent sur les comptes opérationnels</li>
+          <li data-lang="en">Permanent Intune Administrator Entra on operational accounts</li>
+          <li data-lang="fr">Global Administrator utilisé pour les tâches Intune courantes</li>
+          <li data-lang="en">Global Administrator used for routine Intune tasks</li>
+          <li data-lang="fr">Rôles custom sans scope tags (visibilité globale)</li>
+          <li data-lang="en">Custom roles without scope tags (global visibility)</li>
+          <li data-lang="fr">Absence de politique MAA sur Wipe/Retire</li>
+          <li data-lang="en">No MAA policy on Wipe/Retire actions</li>
+        </ul>
+      </div>
+      <div class="ba-card after">
+        <h4>✅ <span data-lang="fr">Recommandé</span><span data-lang="en">Recommended</span></h4>
+        <ul>
+          <li data-lang="fr">Rôles Intune RBAC custom + scope tags par entité</li>
+          <li data-lang="en">Custom Intune RBAC roles + scope tags per entity</li>
+          <li data-lang="fr">PIM for Groups pour les élévations JIT</li>
+          <li data-lang="en">PIM for Groups for JIT elevation</li>
+          <li data-lang="fr">MFA phishing-resistant (FIDO2/Passkey) pour l'élévation</li>
+          <li data-lang="en">Phishing-resistant MFA (FIDO2/Passkey) for elevation</li>
+          <li data-lang="fr">MAA activé sur Device Wipe + RBAC changes</li>
+          <li data-lang="en">MAA enabled on Device Wipe + RBAC changes</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout info" data-lang="fr">
+      <div class="callout-title">📌 PIM Method 1 vs Method 2</div>
+      Deux approches sont supportées : (1) PIM sur le rôle <em>Intune Administrator</em> Entra (élévation en ~10 secondes, mais permissions globales) ; (2) <strong>PIM for Groups</strong> avec un Intune RBAC role assignment scopé (élévation plus longue ~2 min, mais respect strict du least privilege). Pour les opérations sensibles, la méthode 2 est recommandée.
+    </div>
+    <div class="callout info" data-lang="en">
+      <div class="callout-title">📌 PIM Method 1 vs Method 2</div>
+      Two approaches are supported: (1) PIM on the Entra <em>Intune Administrator</em> role (~10 second elevation, but global permissions); (2) <strong>PIM for Groups</strong> with a scoped Intune RBAC role assignment (slower elevation ~2 min, but strict least privilege). For sensitive operations, method 2 is recommended.
+    </div>
+  </div>
+
+  <div class="divider"><div class="divider-icon"></div></div>
+
+  <!-- ─── SECTION 6 : PLAN D'ACTION ─── -->
+  <div class="section">
+    <div class="section-num">06</div>
+    <h2 data-lang="fr">Plan d'action prioritaire</h2>
+    <h2 data-lang="en">Priority Action Plan</h2>
+
+    <p data-lang="fr">Ce que je recommande d'implémenter immédiatement, dans cet ordre :</p>
+    <p data-lang="en">What I recommend implementing immediately, in this order:</p>
+
+    <div class="priority-grid">
+      <div class="pg-row">
+        <div class="pg-cell" data-lang="fr">Priorité</div><div class="pg-cell" data-lang="en">Priority</div>
+        <div class="pg-cell" data-lang="fr">Action</div><div class="pg-cell" data-lang="en">Action</div>
+        <div class="pg-cell" data-lang="fr">Effort</div><div class="pg-cell" data-lang="en">Effort</div>
+      </div>
+      <div class="pg-row" style="background:rgba(239,68,68,.04)">
+        <div class="pg-cell"><span class="prio-badge prio-critical">CRITIQUE</span></div>
+        <div class="pg-cell" style="font-size:13px;">
+          <span data-lang="fr">Activer MAA sur Device Wipe / Retire / FreshStart</span>
+          <span data-lang="en">Enable MAA on Device Wipe / Retire / FreshStart</span>
+        </div>
+        <div class="pg-cell" style="font-size:12px; color:var(--muted);">15 min</div>
+      </div>
+      <div class="pg-row" style="background:rgba(239,68,68,.04)">
+        <div class="pg-cell"><span class="prio-badge prio-critical">CRITIQUE</span></div>
+        <div class="pg-cell" style="font-size:13px;">
+          <span data-lang="fr">Activer MAA sur les changements RBAC</span>
+          <span data-lang="en">Enable MAA on RBAC changes</span>
+        </div>
+        <div class="pg-cell" style="font-size:12px; color:var(--muted);">15 min</div>
+      </div>
+      <div class="pg-row" style="background:rgba(245,158,11,.03)">
+        <div class="pg-cell"><span class="prio-badge prio-high">ÉLEVÉE</span></div>
+        <div class="pg-cell" style="font-size:13px;">
+          <span data-lang="fr">Supprimer les Intune Administrator Entra permanents</span>
+          <span data-lang="en">Remove permanent Intune Administrator Entra roles</span>
+        </div>
+        <div class="pg-cell" style="font-size:12px; color:var(--muted);">1–2h</div>
+      </div>
+      <div class="pg-row" style="background:rgba(245,158,11,.03)">
+        <div class="pg-cell"><span class="prio-badge prio-high">ÉLEVÉE</span></div>
+        <div class="pg-cell" style="font-size:13px;">
+          <span data-lang="fr">Auditer les cross-assignments avec le script PowerShell</span>
+          <span data-lang="en">Audit cross-assignments with the PowerShell script</span>
+        </div>
+        <div class="pg-cell" style="font-size:12px; color:var(--muted);">30 min</div>
+      </div>
+      <div class="pg-row" style="background:rgba(56,189,248,.02)">
+        <div class="pg-cell"><span class="prio-badge prio-medium">MEDIUM</span></div>
+        <div class="pg-cell" style="font-size:13px;">
+          <span data-lang="fr">Activer le Permissions Assessment Report dès disponibilité</span>
+          <span data-lang="en">Enable Permissions Assessment Report when available</span>
+        </div>
+        <div class="pg-cell" style="font-size:12px; color:var(--muted);">1–3j</div>
+      </div>
+      <div class="pg-row" style="background:rgba(56,189,248,.02)">
+        <div class="pg-cell"><span class="prio-badge prio-medium">MEDIUM</span></div>
+        <div class="pg-cell" style="font-size:13px;">
+          <span data-lang="fr">Migrer vers PIM for Groups pour les élévations</span>
+          <span data-lang="en">Migrate to PIM for Groups for role elevation</span>
+        </div>
+        <div class="pg-cell" style="font-size:12px; color:var(--muted);">½ jour</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="highlight-quote">
+    <p data-lang="fr">Un seul compte admin sans contrainte RBAC, c'est une surface d'attaque à l'échelle du tenant. Le scope tag decoupling n'est pas une option de confort — c'est une correction de sécurité structurelle.</p>
+    <p data-lang="en">A single admin account with no RBAC constraints is an attack surface at tenant scale. Scope tag decoupling is not a convenience option — it's a structural security fix.</p>
+    <cite>Thomas Andres · AL-Conseil · Mars 2026</cite>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-left">
+      <strong>Thomas Andres</strong> · Senior IT Infrastructure Architect<br>
+      AL-Conseil · <span style="color:var(--primary);">alconseil.fr</span>
+    </div>
+    <div class="footer-tags">
+      <span class="footer-tag">#MicrosoftIntune</span>
+      <span class="footer-tag">#RBAC</span>
+      <span class="footer-tag">#EndpointSecurity</span>
+      <span class="footer-tag">#ZeroTrust</span>
+      <span class="footer-tag">#M365</span>
+      <span class="footer-tag">#SFI</span>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+function setLang(lang) {
+  document.body.className = 'lang-' + lang;
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent.toLowerCase().includes(lang));
+  });
+  // sync all lang-tagged elements
+  document.querySelectorAll('[data-lang]').forEach(el => {
+    el.style.display = el.dataset.lang === lang ? 'block' : 'none';
+  });
+  document.querySelectorAll('[data-inline]').forEach(el => {
+    el.style.display = el.dataset.inline === lang ? 'inline' : 'none';
+  });
+}
+// init
+setLang('fr');
+</script>
+</body>
+</html>
