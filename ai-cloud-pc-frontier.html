@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-enabled Cloud PC — Frontier Preview | Thomas Andres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0c10; --surface:#111318; --surface2:#181c24; --border:#1e2330;
+  --accent:#00d4ff; --accent2:#7c3aed; --accent3:#10b981; --accent4:#f59e0b;
+  --danger:#ef4444; --text:#e2e8f0; --muted:#64748b; --muted2:#94a3b8; --heading:#f8fafc;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:16px;line-height:1.75;min-height:100vh;}
+
+/* ─── LANG SWITCHER ─── */
+.lang-bar{position:sticky;top:0;z-index:100;background:rgba(10,12,16,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;justify-content:center;gap:4px;padding:10px 20px;}
+.lang-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:6px 18px;border-radius:4px;border:1px solid var(--border);cursor:pointer;transition:all .2s;background:transparent;color:var(--muted);}
+.lang-btn.active{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.4);color:var(--accent);}
+.lang-fr,.lang-en{display:none;}
+body.show-fr .lang-fr{display:block;}
+body.show-en .lang-en{display:block;}
+
+/* ─── HERO ─── */
+.hero{position:relative;overflow:hidden;padding:80px 40px 60px;background:linear-gradient(135deg,#0a0c10 0%,#0f1520 40%,#0a0d1a 100%);border-bottom:1px solid var(--border);}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 700px 400px at 80% 50%,rgba(0,212,255,.07) 0%,transparent 70%),radial-gradient(ellipse 400px 300px at 15% 80%,rgba(124,58,237,.08) 0%,transparent 70%);pointer-events:none;}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(0,212,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.04) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+.hero-content{position:relative;max-width:880px;margin:0 auto;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);padding:5px 12px;border-radius:4px;margin-bottom:28px;}
+.eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.7);}}
+h1{font-family:'Syne',sans-serif;font-size:clamp(30px,5vw,52px);font-weight:800;color:var(--heading);line-height:1.1;letter-spacing:-.02em;margin-bottom:20px;}
+h1 .a{color:var(--accent);}h1 .b{color:#a78bfa;}
+.hero-sub{font-size:17px;color:var(--muted2);max-width:620px;line-height:1.6;margin-bottom:36px;}
+.badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:40px;}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:5px 12px;border-radius:4px;letter-spacing:.06em;border:1px solid;}
+.b-blue{color:var(--accent);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.06);}
+.b-purple{color:#a78bfa;border-color:rgba(124,58,237,.35);background:rgba(124,58,237,.07);}
+.b-green{color:var(--accent3);border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.06);}
+.b-amber{color:var(--accent4);border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.06);}
+.b-red{color:#f87171;border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.06);}
+.stat-pills{display:flex;flex-wrap:wrap;gap:16px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 20px;min-width:130px;}
+.stat-v{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:var(--accent);display:block;line-height:1;margin-bottom:4px;}
+.stat-l{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+
+/* ─── AUTHOR ─── */
+.author-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 40px;}
+.author-inner{max-width:880px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;}
+.auth-name{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--heading);}
+.auth-title{font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+.auth-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-left:auto;}
+
+/* ─── CONTENT ─── */
+.content{max-width:880px;margin:0 auto;padding:60px 40px;}
+.section{margin-bottom:60px;}
+.sec-hdr{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;}
+.sec-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);padding:4px 8px;border-radius:4px;flex-shrink:0;margin-top:6px;letter-spacing:.06em;}
+h2{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--heading);line-height:1.2;}
+h3{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--heading);margin:28px 0 12px;}
+p{margin-bottom:16px;color:var(--text);}
+strong{color:var(--heading);font-weight:600;}
+em{color:var(--muted2);font-style:italic;}
+a{color:var(--accent);text-decoration:none;}
+a:hover{text-decoration:underline;}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin:40px 0;}
+
+/* ─── CALLOUT ─── */
+.callout{border-left:3px solid;padding:16px 20px;border-radius:0 8px 8px 0;margin:24px 0;font-size:15px;}
+.c-blue{border-color:var(--accent);background:rgba(0,212,255,.05);}
+.c-green{border-color:var(--accent3);background:rgba(16,185,129,.05);}
+.c-amber{border-color:var(--accent4);background:rgba(245,158,11,.05);}
+.c-purple{border-color:#a78bfa;background:rgba(124,58,237,.05);}
+.c-red{border-color:var(--danger);background:rgba(239,68,68,.05);}
+.cl{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:600;margin-bottom:8px;display:block;}
+.c-blue .cl{color:var(--accent);}.c-green .cl{color:var(--accent3);}
+.c-amber .cl{color:var(--accent4);}.c-purple .cl{color:#a78bfa;}.c-red .cl{color:var(--danger);}
+
+/* ─── TABLE ─── */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;margin:24px 0;}
+table{width:100%;border-collapse:collapse;font-size:14px;}
+thead tr{background:var(--surface2);border-bottom:1px solid var(--border);}
+thead th{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:12px 16px;text-align:left;font-weight:500;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .15s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+tbody td{padding:11px 16px;color:var(--text);vertical-align:middle;}
+.tops{display:inline-flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:3px 10px;border-radius:20px;}
+.t45{background:rgba(0,212,255,.1);color:var(--accent);border:1px solid rgba(0,212,255,.25);}
+.t47{background:rgba(245,158,11,.1);color:var(--accent4);border:1px solid rgba(245,158,11,.25);}
+.t48{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.3);}
+.t50{background:rgba(16,185,129,.1);color:var(--accent3);border:1px solid rgba(16,185,129,.25);}
+.t40{background:rgba(148,163,184,.08);color:var(--muted2);border:1px solid rgba(148,163,184,.2);}
+.chip{font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 7px;border-radius:4px;}
+.cq{background:rgba(0,212,255,.07);color:#67e8f9;}
+.ci{background:rgba(0,112,255,.1);color:#93c5fd;}
+.ca{background:rgba(237,58,58,.08);color:#fca5a5;}
+.new-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--accent3);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);padding:2px 6px;border-radius:4px;margin-left:6px;}
+
+/* ─── REQ GRID ─── */
+.req-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin:24px 0;}
+.req-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;position:relative;overflow:hidden;}
+.req-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.req-cloud::before{background:linear-gradient(90deg,var(--accent),transparent);}
+.req-phys::before{background:linear-gradient(90deg,var(--accent3),transparent);}
+.req-icon{font-size:24px;margin-bottom:10px;display:block;}
+.req-title{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--heading);margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em;}
+.ri{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--muted2);margin-bottom:7px;}
+.ri::before{content:'→';font-family:'IBM Plex Mono',monospace;color:var(--accent);flex-shrink:0;font-size:11px;margin-top:2px;}
+.req-phys .ri::before{color:var(--accent3);}
+
+/* ─── PRIVACY GRID ─── */
+.priv-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0;}
+@media(max-width:600px){.priv-grid,.req-grid{grid-template-columns:1fr;}}
+.priv-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;}
+.priv-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--heading);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dg{background:var(--accent3);}.db{background:var(--accent);}.da{background:var(--accent4);}.dp{background:#a78bfa;}
+.priv-list{list-style:none;font-size:13px;color:var(--muted2);}
+.priv-list li{padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:8px;}
+.priv-list li:last-child{border-bottom:none;}
+.ck{color:var(--accent3);flex-shrink:0;}.wn{color:var(--accent4);flex-shrink:0;}
+
+/* ─── TIMELINE ─── */
+.timeline{position:relative;padding-left:28px;margin:24px 0;}
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:1px;background:linear-gradient(to bottom,var(--accent),var(--accent2),transparent);}
+.tl-item{position:relative;margin-bottom:28px;}
+.tl-item::before{content:'';position:absolute;left:-24px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 8px rgba(0,212,255,.4);}
+.tl-date{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+.tl-title{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:var(--heading);margin-bottom:6px;}
+.tl-body{font-size:14px;color:var(--muted2);}
+
+/* ─── COMPARE TABLE ─── */
+.cmp{width:100%;border-collapse:collapse;margin:24px 0;}
+.cmp th{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;padding:13px 16px;text-align:left;background:var(--surface2);border:1px solid var(--border);color:var(--heading);}
+.cmp td{padding:11px 16px;border:1px solid var(--border);font-size:13px;vertical-align:top;}
+.cmp tr:nth-child(even){background:rgba(255,255,255,.01);}
+.tick{color:var(--accent3);font-size:15px;}.cross{color:var(--danger);font-size:15px;}.half{color:var(--accent4);font-size:15px;}
+
+/* ─── TAGS ─── */
+.tag-strip{display:flex;flex-wrap:wrap;gap:8px;margin-top:40px;padding-top:24px;border-top:1px solid var(--border);}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);padding:4px 10px;border:1px solid var(--border);border-radius:4px;}
+
+/* ─── FOOTER ─── */
+.footer{border-top:1px solid var(--border);padding:40px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);}
+.footer a{color:var(--accent);}
+
+/* ─── CODE ─── */
+.code-block{background:#0d1117;border:1px solid var(--border);border-radius:8px;padding:20px;overflow-x:auto;margin:16px 0;}
+.code-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:8px;}
+.code-block pre{font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.6;color:#e2e8f0;white-space:pre-wrap;}
+.kw{color:#c792ea;}.str{color:#c3e88d;}.val{color:#f78c6c;}.cmt{color:#546e7a;font-style:italic;}.fn{color:#82aaff;}
+</style>
+</head>
+<body class="show-fr">
+
+<!-- LANG SWITCHER -->
+<nav class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('fr')">🇫🇷 Français</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+</nav>
+
+<!-- ═══════════════════════ FRENCH VERSION ═══════════════════════ -->
+<div class="lang-fr">
+
+<header class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="eyebrow">Windows 365 · Frontier Preview · Mars 2026</div>
+    <h1><span class="b">AI-enabled Cloud PC</span><br>Le Copilot+ PC… <span class="a">sans le PC</span></h1>
+    <p class="hero-sub">Microsoft vient de franchir un cap stratégique : les expériences IA réservées aux machines Copilot+ arrivent dans le cloud — sans NPU local, sans contrainte matérielle, piloté depuis Intune en un toggle.</p>
+    <div class="badge-row">
+      <span class="badge b-blue">Windows 365 Enterprise</span>
+      <span class="badge b-purple">Frontier Preview</span>
+      <span class="badge b-green">Élargi mars 2026</span>
+      <span class="badge b-amber">Intune-managed</span>
+      <span class="badge b-red">EUDB compliant</span>
+    </div>
+    <div class="stat-pills">
+      <div class="stat"><span class="stat-v">40+</span><span class="stat-l">TOPS requis (physique)</span></div>
+      <div class="stat"><span class="stat-v">8 vCPU</span><span class="stat-l">Cloud PC minimum</span></div>
+      <div class="stat"><span class="stat-v">32 GB</span><span class="stat-l">RAM Cloud PC</span></div>
+      <div class="stat"><span class="stat-v">0</span><span class="stat-l">NPU local nécessaire</span></div>
+      <div class="stat"><span class="stat-v">1 toggle</span><span class="stat-l">Activation Intune</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="author-bar"><div class="author-inner">
+  <div class="avatar">TA</div>
+  <div><div class="auth-name">Thomas Andres</div><div class="auth-title">Senior IT Infrastructure Architect · AL-Conseil · Microsoft Endpoint &amp; Cloud</div></div>
+  <div class="auth-date">30 mars 2026</div>
+</div></div>
+
+<main class="content">
+
+<!-- 01 -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">01</span><h2>Un changement de paradigme silencieux</h2></div>
+  <p>Depuis mai 2024, Microsoft a progressivement déployé sa gamme <strong>Copilot+ PC</strong> — des machines physiques équipées d'un NPU spécialisé capable d'exécuter des inférences IA localement, à plus de 40 TOPS (Trillion Operations Per Second). La promesse : Recall, Click to Do, recherche sémantique, Live Captions avec traduction en temps réel, tout ça <em>off-cloud</em>, rapide et privé.</p>
+  <p>Le problème ? Ces expériences étaient réservées aux seuls appareils physiques certifiés Copilot+. Un parc de 10 000 PC non éligibles, une flotte VDI ou un utilisateur sur Mac ? Aucun accès.</p>
+  <div class="callout c-blue">
+    <span class="cl">💡 Le shift</span>
+    Les <strong>Windows 365 AI-enabled Cloud PCs</strong> inversent la logique : c'est désormais Azure qui joue le rôle du NPU. La puissance de calcul IA est mutualisée dans le cloud Microsoft, et l'utilisateur reçoit une expérience Copilot+ streamée sur n'importe quel terminal — même un vieux PC x86, un iPad ou un Chromebook.
+  </div>
+  <p>Ce service est déployé dans le cadre du <strong>Microsoft Frontier Program</strong>, une initiative d'accès anticipé qui n'est pas un simple programme bêta, mais un programme de co-création où les participants influencent directement la roadmap produit.</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- 02 -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">02</span><h2>Copilot+ PC physique : le seuil des 40 TOPS</h2></div>
+  <p>Pour comprendre ce que démocratise le Cloud PC AI-enabled, il faut saisir la contrainte matérielle qu'il contourne. Un <strong>NPU (Neural Processing Unit)</strong> est une puce dédiée à l'inférence d'IA, optimisée pour les opérations matricielles en faible précision (INT8, FP16) — là où un CPU ou GPU généraliste consomme bien plus d'énergie pour le même résultat.</p>
+  <div class="callout c-amber">
+    <span class="cl">⚠️ Attention au marketing</span>
+    Certains constructeurs affichent "90 TOPS" ou "120 TOPS" en additionnant CPU + GPU + NPU. <strong>Seul le score NPU isolé compte</strong> pour la certification Copilot+. Un NPU à 13 TOPS avec un GPU à 77 TOPS = non éligible, même si la somme dépasse 40.
+  </div>
+
+  <h3>Pré-requis Copilot+ PC physique</h3>
+  <div class="req-grid">
+    <div class="req-card req-phys">
+      <span class="req-icon">🧠</span>
+      <div class="req-title">NPU</div>
+      <div class="ri">≥ 40 TOPS dédiés (NPU seul)</div>
+      <div class="ri">Qualcomm, Intel ou AMD</div>
+      <div class="ri">Firmware NPU à jour requis</div>
+    </div>
+    <div class="req-card req-phys">
+      <span class="req-icon">💾</span>
+      <div class="req-title">Mémoire</div>
+      <div class="ri">16 GB RAM minimum</div>
+      <div class="ri">DDR5 ou LPDDR5 recommandé</div>
+      <div class="ri">256 GB SSD (ou UFS)</div>
+    </div>
+    <div class="req-card req-phys">
+      <span class="req-icon">🖥️</span>
+      <div class="req-title">OS &amp; Sécurité</div>
+      <div class="ri">Windows 11 24H2 minimum</div>
+      <div class="ri">TPM 2.0 obligatoire</div>
+      <div class="ri">Windows Hello ESS requis</div>
+    </div>
+  </div>
+
+  <h3>Catalogue des appareils Copilot+ certifiés (NPU ≥ 40 TOPS)</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Constructeur / Modèle</th>
+        <th>Puce</th>
+        <th>Famille</th>
+        <th>NPU TOPS</th>
+        <th>Segment</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><strong>Microsoft Surface Pro 11</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Business/Pro</td></tr>
+        <tr><td><strong>Microsoft Surface Laptop 7</strong> (13&quot; / 15&quot;)</td><td><span class="chip cq">Snapdragon X Elite / Plus</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Business</td></tr>
+        <tr><td><strong>Microsoft Surface Pro for Business</strong> <span class="new-tag">NEW</span></td><td><span class="chip ci">Intel Core Ultra 200V</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Business</td></tr>
+        <tr><td><strong>Microsoft Surface Laptop for Business</strong> <span class="new-tag">NEW</span></td><td><span class="chip ci">Intel Core Ultra 200V</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Business</td></tr>
+        <tr><td><strong>Dell XPS 13 (9345)</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Consumer/Pro</td></tr>
+        <tr><td><strong>Dell Latitude 7455</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>Dell Latitude 5455</strong></td><td><span class="chip cq">Snapdragon X Plus</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>Dell Inspiron 14 Plus</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Consumer</td></tr>
+        <tr><td><strong>Lenovo ThinkPad T14s Gen 6</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>Lenovo ThinkPad X1 Carbon Gen 13</strong></td><td><span class="chip ci">Intel Core Ultra 200V</span></td><td>Intel Lunar Lake</td><td><span class="tops t47">47 TOPS</span></td><td>Premium Biz</td></tr>
+        <tr><td><strong>Lenovo Yoga Slim 9i Gen 10</strong></td><td><span class="chip ci">Intel Core Ultra 7 258V</span></td><td>Intel Lunar Lake</td><td><span class="tops t47">47 TOPS</span></td><td>Premium</td></tr>
+        <tr><td><strong>Lenovo Yoga Pro 7 (AMD)</strong></td><td><span class="chip ca">AMD Ryzen AI 9 HX 370</span></td><td>AMD Hawk Point</td><td><span class="tops t50">50 TOPS</span></td><td>Creator</td></tr>
+        <tr><td><strong>HP EliteBook Ultra G1q</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>HP OmniBook Ultra Flip 14</strong></td><td><span class="chip ci">Intel Core Ultra 9 288V</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Premium</td></tr>
+        <tr><td><strong>ASUS Zenbook S 16 (UM5606)</strong></td><td><span class="chip ca">AMD Ryzen AI 9 HX 370</span></td><td>AMD Hawk Point</td><td><span class="tops t50">50 TOPS</span></td><td>Consumer</td></tr>
+        <tr><td><strong>ASUS Vivobook S 15</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Consumer</td></tr>
+        <tr><td><strong>ASUS ExpertBook P5</strong></td><td><span class="chip ci">Intel Core Ultra (Series 2)</span></td><td>Intel Lunar Lake</td><td><span class="tops t47">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>ASUS NUC 14 Pro AI</strong></td><td><span class="chip ci">Intel Core Ultra 7/9 (2xxV)</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Mini PC</td></tr>
+        <tr><td><strong>Samsung Galaxy Book5 Pro 360</strong></td><td><span class="chip ci">Intel Core Ultra (200V)</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Premium</td></tr>
+        <tr><td><strong>Acer Swift 14 AI</strong></td><td><span class="chip cq">Snapdragon X Plus</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Consumer</td></tr>
+        <tr><td><strong>MSI Summit A16 AI+</strong></td><td><span class="chip ca">AMD Ryzen AI 9 HX 370</span></td><td>AMD Hawk Point</td><td><span class="tops t50">50 TOPS</span></td><td>Business</td></tr>
+        <tr><td><strong>GEEKOM A9 Max AI</strong></td><td><span class="chip ca">AMD Ryzen AI 9 HX 370</span></td><td>AMD Hawk Point</td><td><span class="tops t50">50 TOPS</span></td><td>Mini PC</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout c-purple">
+    <span class="cl">🔑 Les trois familles de SoC éligibles</span>
+    <strong>Qualcomm Snapdragon X Elite/Plus</strong> → 45 TOPS · architecture ARM · autonomie record · compatibilité x86 via émulation.<br>
+    <strong>Intel Core Ultra 200V (Lunar Lake)</strong> → 47–48 TOPS · x86 natif · meilleure compatibilité logicielle enterprise.<br>
+    <strong>AMD Ryzen AI 300 (Hawk Point)</strong> → 50 TOPS · x86 natif · meilleures perfs multi-thread · Radeon 800M iGPU.
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 03 -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">03</span><h2>Windows 365 Cloud PC : les pré-requis techniques</h2></div>
+  <p>Le Cloud PC AI-enabled propose la même expérience Copilot+ sans NPU physique. La puissance de calcul IA est hébergée côté Azure. En contrepartie, les pré-requis Cloud PC sont plus exigeants que les SKUs standard.</p>
+
+  <h3>Pré-requis Cloud PC (Frontier Preview — mars 2026)</h3>
+  <div class="req-grid">
+    <div class="req-card req-cloud">
+      <span class="req-icon">⚙️</span>
+      <div class="req-title">Compute</div>
+      <div class="ri">≥ 8 vCPU</div>
+      <div class="ri">≥ 32 GB RAM</div>
+      <div class="ri">≥ 128 GB disque (nouveau mars 2026)</div>
+      <div class="ri">ou 256 GB (recommandé)</div>
+    </div>
+    <div class="req-card req-cloud">
+      <span class="req-icon">🖥️</span>
+      <div class="req-title">OS</div>
+      <div class="ri">Windows 11 24H2 ≥ build 26100.6584</div>
+      <div class="ri">ou 25H2 ≥ build 26200.7840</div>
+      <div class="ri">Retail build suffit (fini Windows Insider !)</div>
+    </div>
+    <div class="req-card req-cloud">
+      <span class="req-icon">🌍</span>
+      <div class="req-title">Région Azure</div>
+      <div class="ri">West Europe / North Europe</div>
+      <div class="ri">East US / West US</div>
+      <div class="ri">Australia East</div>
+      <div class="ri">Japan East <span class="new-tag">NEW</span></div>
+      <div class="ri">Germany West Central <span class="new-tag">NEW</span></div>
+      <div class="ri">South Central US <span class="new-tag">NEW</span></div>
+      <div class="ri">Canada Central <span class="new-tag">NEW</span></div>
+    </div>
+    <div class="req-card req-cloud">
+      <span class="req-icon">🛡️</span>
+      <div class="req-title">Intune / Licences</div>
+      <div class="ri">Windows 365 Enterprise SKU</div>
+      <div class="ri">Intune — politique Cloud PC activée</div>
+      <div class="ri">Groupe Entra ID ciblé</div>
+      <div class="ri">Frontier Program enrollment</div>
+    </div>
+  </div>
+
+  <div class="callout c-green">
+    <span class="cl">✅ Nouveauté mars 2026 — Plus besoin de Windows Insider</span>
+    Depuis le 30 mars 2026, les Cloud PCs AI-enabled fonctionnent avec des <strong>builds Windows 11 retail standard</strong>. L'obligation de s'inscrire au Windows Insider Program Beta Channel est supprimée — c'était le principal frein au déploiement en production enterprise.
+  </div>
+
+  <h3>Activation depuis Intune (une seule politique)</h3>
+  <div class="code-block">
+    <div class="code-lbl">Intune Admin Center — Navigation</div>
+    <pre><span class="cmt"># Chemin de navigation</span>
+<span class="fn">Devices</span> → <span class="fn">Device onboarding</span> → <span class="fn">Windows 365</span> → <span class="fn">Settings</span>
+  → <span class="kw">+ Create</span> → <span class="str">Cloud PC configurations (preview)</span>
+
+<span class="cmt"># Configuration minimale</span>
+Name        : <span class="str">"AI-enabled Cloud PC — Frontier"</span>
+AI-enabled features (Frontier) : <span class="val">Enable</span>
+
+<span class="cmt"># Assignation : groupe Entra ID ciblé</span>
+<span class="cmt"># Délai d'activation : jusqu'à 48h après assignation</span>
+<span class="cmt"># Vérifier ensuite : Reports > Cloud PC Overview > AI-enabled</span></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 04 -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">04</span><h2>Fonctionnalités disponibles (Frontier Preview)</h2></div>
+
+  <h3>🔍 Improved Windows Search (Recherche sémantique)</h3>
+  <p>La recherche Windows traditionnelle s'appuie sur les métadonnées de fichiers (nom, date, extension). La <strong>recherche IA</strong> interprète l'intention de l'utilisateur en langage naturel et indexe le <em>contenu</em> des documents.</p>
+  <div class="callout c-blue">
+    <span class="cl">Exemple concret</span>
+    Un fichier photo nommé <code>IMG_2841.jpg</code> représentant une voiture rouge. Recherche classique "voiture" → 0 résultat. Recherche sémantique → le fichier apparaît. La recherche couvre les fichiers locaux <strong>et</strong> OneDrive simultanément, avec une interface unifiée dans la barre des tâches et l'Explorateur de fichiers.<br><br>
+    <em>Langues supportées : Français, Anglais, Allemand, Espagnol, Japonais, Chinois simplifié.</em>
+  </div>
+  <p>En test comparatif sur OneDrive : la recherche IA a retourné 37 résultats versus 10 pour la recherche classique sur le même corpus — soit une amélioration de +270 % de rappel.</p>
+
+  <h3>🖱️ Click to Do</h3>
+  <p>Click to Do contextualise les actions disponibles sur n'importe quel élément visible à l'écran — texte sélectionné, image, zone d'une page web. On l'active via <strong>Windows + Q</strong> ou en maintenant la touche Windows + clic gauche.</p>
+  <div class="callout c-purple">
+    <span class="cl">Actions disponibles (phase 1)</span>
+    Sur du texte : Résumer, Traduire, Réécrire, Répondre, Copier, Ouvrir dans Copilot.<br>
+    Sur une image : Recherche visuelle, Extraire le texte, Décrire l'image, Actions contextuelle M365 Copilot.<br>
+    <em>À venir (CY2026) : Text Actions via modèles cloud — fonctionnalité la plus demandée du Frontier Preview.</em>
+  </div>
+
+  <h3>🔮 Sur la roadmap Frontier 2026</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Fonctionnalité</th><th>Statut</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Improved Windows Search</td><td><span class="badge b-green" style="font-size:11px;">Disponible</span></td><td>Local + OneDrive, 6 langues</td></tr>
+        <tr><td>Click to Do</td><td><span class="badge b-green" style="font-size:11px;">Disponible</span></td><td>Win+Q, texte &amp; images</td></tr>
+        <tr><td>Click to Do — Text Actions (cloud)</td><td><span class="badge b-amber" style="font-size:11px;">En cours CY26</span></td><td>Via modèles cloud Azure</td></tr>
+        <tr><td>Recall</td><td><span class="badge b-red" style="font-size:11px;">Non disponible</span></td><td>Cloud PC uniquement on-device</td></tr>
+        <tr><td>Windows Studio Effects</td><td><span class="badge b-amber" style="font-size:11px;">Partiel</span></td><td>Dépend NPU local ou webcam</td></tr>
+        <tr><td>Live Captions + Traduction</td><td><span class="badge b-amber" style="font-size:11px;">À venir</span></td><td>Parity gap à combler</td></tr>
+        <tr><td>Cocreator (Paint)</td><td><span class="badge b-red" style="font-size:11px;">Non disponible</span></td><td>Inférence NPU locale requise</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 05 -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">05</span><h2>Données &amp; Confidentialité : où vont vos données ?</h2></div>
+  <p>C'est la question que tout DSI et DPO se posera dès le premier POC. Voici les réponses précises tirées de la documentation officielle Microsoft.</p>
+
+  <div class="priv-grid">
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot dg"></span>Traitement des données</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Traitement <strong>éphémère</strong> via le service cloud Windows 365 sécurisé</li>
+        <li><span class="ck">✓</span>Aucune donnée personnelle stockée dans le service cloud IA</li>
+        <li><span class="ck">✓</span>Aucune donnée n'est utilisée pour entraîner des modèles IA</li>
+        <li><span class="ck">✓</span>Index sémantique stocké <strong>dans le Cloud PC</strong> uniquement</li>
+      </ul>
+    </div>
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot db"></span>Résidence des données</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Données stockées dans la région Azure du Cloud PC provisionné</li>
+        <li><span class="ck">✓</span><strong>EUDB (European Data Boundary)</strong> supporté</li>
+        <li><span class="ck">✓</span>RGPD compliant — conformément aux Product Terms Microsoft</li>
+        <li><span class="ck">✓</span>Certifications ISO/IEC 27018, ISO 27001</li>
+      </ul>
+    </div>
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot da"></span>Contrôles IT Admin</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Fonctionnalités IA <strong>désactivées par défaut</strong> — opt-in explicite</li>
+        <li><span class="ck">✓</span>Activation par groupe Entra ID (granularité utilisateur)</li>
+        <li><span class="ck">✓</span>Désactivation individuelle possible via policy Intune</li>
+        <li><span class="wn">⚠</span>Policy Disable &gt; Enable en cas de conflit</li>
+      </ul>
+    </div>
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot dp"></span>Rétention &amp; Audit</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Données utilisateur conservées max 90 jours après suppression</li>
+        <li><span class="ck">✓</span>Audit, export, suppression via Microsoft Intune standard</li>
+        <li><span class="ck">✓</span>Alertes Defender for Endpoint : 180 jours</li>
+        <li><span class="wn">⚠</span>Diagnostic data optionnel requis (Windows Privacy Settings)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout c-green">
+    <span class="cl">✅ Conclusion pour les DSI &amp; DPO</span>
+    Les données d'inférence IA ne quittent pas votre périmètre Azure. L'index sémantique reste dans le Cloud PC. Aucune utilisation pour le ré-entraînement de modèles. Le service respecte l'EUDB et le RGPD — un différenciateur majeur par rapport à des solutions IA tiers qui mutualisent les données entre tenants.
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 06 -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">06</span><h2>Chronologie : de Microsoft Ignite aux mises à jour de mars 2026</h2></div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-date">Mai 2024</div>
+      <div class="tl-title">Lancement des Copilot+ PC physiques</div>
+      <div class="tl-body">Surface Pro 11, Surface Laptop 7, premiers modèles Snapdragon X Elite. Fonctionnalités Copilot+ exclusivement on-device.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">Septembre 2024</div>
+      <div class="tl-title">Extension AMD &amp; Intel</div>
+      <div class="tl-body">AMD Ryzen AI 300 et Intel Core Ultra 200V rejoignent l'écosystème Copilot+. Fin de l'exclusivité Qualcomm.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">Novembre 2025 — Ignite</div>
+      <div class="tl-title">Annonce Windows 365 AI-enabled Cloud PC</div>
+      <div class="tl-body">Première preview publique. Windows Insider Program Beta Channel requis. Régions limitées. SKU minimum 8vCPU/32GB/256GB.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">Janvier 2026</div>
+      <div class="tl-title">Extension du Frontier Program</div>
+      <div class="tl-body">Disponibilité élargie aux entreprises. Rapport AI-enabled dans Intune (Initiated / Ready / Failed). Blog IT Pro Windows publié.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">Mars 2026 — Aujourd'hui</div>
+      <div class="tl-title">4 évolutions majeures simultanées</div>
+      <div class="tl-body">
+        <strong>1.</strong> Windows Insider Program n'est plus requis — builds retail suffisent.<br>
+        <strong>2.</strong> Support disque 128 GB (entrée de gamme).<br>
+        <strong>3.</strong> 4 nouvelles régions Azure : Japan East, Germany West Central, South Central US, Canada Central.<br>
+        <strong>4.</strong> Nouvelle UX utilisateur avec tag "AI-Enabled (Frontier)" dans Windows App.
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">CY 2026 — Roadmap</div>
+      <div class="tl-title">Fermeture des écarts de parité via modèles cloud</div>
+      <div class="tl-body">Text Actions pour Click to Do via modèles cloud Azure. Optimisation coût, fiabilité, nouvelles expériences productivité. Objectif : déploiements enterprise à grande échelle.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 07 -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">07</span><h2>Copilot+ PC physique vs AI Cloud PC : le tableau comparatif</h2></div>
+  <div class="tbl-wrap">
+    <table class="cmp">
+      <thead><tr>
+        <th>Critère</th>
+        <th>Copilot+ PC physique</th>
+        <th>AI-enabled Cloud PC</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><strong>NPU requis</strong></td><td><span class="tick">✓</span> 40+ TOPS hardware</td><td><span class="tick">✓</span> Simulé dans Azure</td></tr>
+        <tr><td><strong>Terminal utilisateur</strong></td><td>Machine certifiée Copilot+ uniquement</td><td>N'importe quel device (PC, Mac, iPad…)</td></tr>
+        <tr><td><strong>Improved Search</strong></td><td><span class="tick">✓</span> On-device</td><td><span class="tick">✓</span> Via cloud service</td></tr>
+        <tr><td><strong>Click to Do</strong></td><td><span class="tick">✓</span> Full</td><td><span class="half">⚡</span> Partiel (Text Actions à venir)</td></tr>
+        <tr><td><strong>Recall</strong></td><td><span class="tick">✓</span> On-device, chiffré</td><td><span class="cross">✗</span> Non disponible</td></tr>
+        <tr><td><strong>Live Captions + Traduction</strong></td><td><span class="tick">✓</span> 40+ langues</td><td><span class="half">⚡</span> En développement</td></tr>
+        <tr><td><strong>Windows Studio Effects</strong></td><td><span class="tick">✓</span> Full NPU</td><td><span class="half">⚡</span> Partiel</td></tr>
+        <tr><td><strong>Vie privée / latence</strong></td><td>100% local, zéro latence réseau</td><td>Traitement éphémère Azure, données dans Cloud PC</td></tr>
+        <tr><td><strong>Gestion Intune</strong></td><td><span class="tick">✓</span> Standard</td><td><span class="tick">✓</span> + Policy AI-enabled dédiée</td></tr>
+        <tr><td><strong>EUDB / RGPD</strong></td><td><span class="tick">✓</span> On-device</td><td><span class="tick">✓</span> Azure region du Cloud PC</td></tr>
+        <tr><td><strong>Coût</strong></td><td>Renouvellement parc physique</td><td>SKU Enterprise ≥ 8vCPU/32GB</td></tr>
+        <tr><td><strong>Déploiement</strong></td><td>Refresh physique requis</td><td>Intune toggle, immédiat</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 08 -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">08</span><h2>Quel impact pour les grandes entreprises ?</h2></div>
+  <p>Dans les contextes enterprise que je gère (flottes > 10 000 endpoints, architectures VDI, Intune @ scale), voici les angles qui me semblent les plus pertinents :</p>
+  <div class="callout c-amber">
+    <span class="cl">📊 Cas d'usage immédiat</span>
+    Pour les organisations ayant déjà déployé Windows 365 Enterprise avec des SKUs ≥ 8vCPU/32GB — comme des postes analytiques, des profils développeurs ou des VDI lourd — <strong>l'activation ne coûte qu'un toggle Intune</strong>. Pas de budget supplémentaire, pas de migration. C'est le POC le plus rapide de 2026.
+  </div>
+  <div class="callout c-red">
+    <span class="cl">⚠️ Points de vigilance</span>
+    <strong>1. SKU sizing :</strong> Les SKUs 2vCPU/4GB ou 4vCPU/8GB ne sont pas éligibles. Vérifier votre catalogue Windows 365 avant d'annoncer la disponibilité aux métiers.<br>
+    <strong>2. Région Azure :</strong> Confirmer que vos Cloud PCs sont provisionnés dans une région supportée. Germany West Central est maintenant disponible — bonne nouvelle pour la conformité RGPD des entreprises allemandes ou opérant sous droit allemand.<br>
+    <strong>3. Diagnostic data :</strong> Activer l'envoi de données de diagnostic optionnelles (requis pour l'indexation sémantique). À documenter dans votre DPIA si vous êtes soumis au RGPD.<br>
+    <strong>4. Recall absent :</strong> La feature de "mémoire" des sessions n'est pas disponible sur Cloud PC — l'inférence locale remain requise pour cette workload.
+  </div>
+  <p>À surveiller également : la convergence avec <strong>Windows 365 for Agents</strong>, annoncé en parallèle, qui permettra à terme à des agents IA autonomes de s'exécuter sur des Cloud PCs — ouvrant la voie à des automatisations enterprise à grande échelle, sans infrastructure dédiée.</p>
+
+  <div class="tag-strip">
+    <span class="tag">#Windows365</span>
+    <span class="tag">#CopilotPlus</span>
+    <span class="tag">#AICloud</span>
+    <span class="tag">#Intune</span>
+    <span class="tag">#Microsoft365</span>
+    <span class="tag">#FrontierPreview</span>
+    <span class="tag">#EnterpriseAI</span>
+    <span class="tag">#EndpointManagement</span>
+    <span class="tag">#NPU</span>
+    <span class="tag">#CloudPC</span>
+    <span class="tag">#GDPR</span>
+    <span class="tag">#EUDB</span>
+  </div>
+</section>
+
+</main>
+</div><!-- END .lang-fr -->
+
+
+<!-- ═══════════════════════ ENGLISH VERSION ═══════════════════════ -->
+<div class="lang-en">
+
+<header class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="eyebrow">Windows 365 · Frontier Preview · March 2026</div>
+    <h1><span class="b">AI-enabled Cloud PC</span><br>The Copilot+ PC… <span class="a">without the PC</span></h1>
+    <p class="hero-sub">Microsoft just crossed a strategic threshold: the AI experiences exclusive to Copilot+ hardware are now streaming from the cloud — no local NPU, no hardware constraint, activated from Intune with a single toggle.</p>
+    <div class="badge-row">
+      <span class="badge b-blue">Windows 365 Enterprise</span>
+      <span class="badge b-purple">Frontier Preview</span>
+      <span class="badge b-green">Expanded March 2026</span>
+      <span class="badge b-amber">Intune-managed</span>
+      <span class="badge b-red">EUDB compliant</span>
+    </div>
+    <div class="stat-pills">
+      <div class="stat"><span class="stat-v">40+</span><span class="stat-l">TOPS required (physical)</span></div>
+      <div class="stat"><span class="stat-v">8 vCPU</span><span class="stat-l">Cloud PC minimum</span></div>
+      <div class="stat"><span class="stat-v">32 GB</span><span class="stat-l">RAM Cloud PC</span></div>
+      <div class="stat"><span class="stat-v">0</span><span class="stat-l">Local NPU needed</span></div>
+      <div class="stat"><span class="stat-v">1 toggle</span><span class="stat-l">Intune activation</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="author-bar"><div class="author-inner">
+  <div class="avatar">TA</div>
+  <div><div class="auth-name">Thomas Andres</div><div class="auth-title">Senior IT Infrastructure Architect · AL-Conseil · Microsoft Endpoint &amp; Cloud</div></div>
+  <div class="auth-date">March 30, 2026</div>
+</div></div>
+
+<main class="content">
+
+<!-- 01 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">01</span><h2>A quiet paradigm shift</h2></div>
+  <p>Since May 2024, Microsoft has been gradually rolling out its <strong>Copilot+ PC</strong> lineup — physical machines equipped with a specialized NPU capable of running AI inference locally, at 40+ TOPS (Trillion Operations Per Second). The promise: Recall, Click to Do, semantic search, real-time Live Captions with translation — all <em>off-cloud</em>, fast, and private.</p>
+  <p>The problem? These experiences were exclusively available on certified Copilot+ physical devices. A fleet of 10,000 non-eligible PCs, a VDI environment, or a user on Mac? No access whatsoever.</p>
+  <div class="callout c-blue">
+    <span class="cl">💡 The shift</span>
+    <strong>Windows 365 AI-enabled Cloud PCs</strong> flip the equation: Azure now plays the role of the NPU. AI compute is centralized in Microsoft's cloud, and users receive a streamed Copilot+ experience on any device — even an old x86 PC, an iPad, or a Chromebook.
+  </div>
+  <p>This service is deployed through the <strong>Microsoft Frontier Program</strong> — not just a beta program, but a co-creation initiative where participants directly influence the product roadmap.</p>
+</section>
+
+<div class="divider"></div>
+
+<!-- 02 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">02</span><h2>Copilot+ PC hardware: the 40 TOPS threshold explained</h2></div>
+  <p>To understand what the AI Cloud PC democratizes, you first need to grasp the hardware constraint it bypasses. An <strong>NPU (Neural Processing Unit)</strong> is a dedicated AI inference chip, optimized for low-precision matrix operations (INT8, FP16) — where a general-purpose CPU or GPU is far less efficient per watt.</p>
+  <div class="callout c-amber">
+    <span class="cl">⚠️ Watch out for marketing claims</span>
+    Some vendors advertise "90 TOPS" or "120 TOPS" by summing CPU + GPU + NPU. <strong>Only the isolated NPU score counts</strong> for Copilot+ certification. An NPU at 13 TOPS with a GPU at 77 TOPS = non-eligible, even though the sum exceeds 40.
+  </div>
+
+  <h3>Copilot+ PC hardware requirements</h3>
+  <div class="req-grid">
+    <div class="req-card req-phys">
+      <span class="req-icon">🧠</span>
+      <div class="req-title">NPU</div>
+      <div class="ri">≥ 40 TOPS (NPU only, isolated)</div>
+      <div class="ri">Qualcomm, Intel, or AMD</div>
+      <div class="ri">Up-to-date NPU firmware required</div>
+    </div>
+    <div class="req-card req-phys">
+      <span class="req-icon">💾</span>
+      <div class="req-title">Memory</div>
+      <div class="ri">16 GB RAM minimum</div>
+      <div class="ri">DDR5 or LPDDR5 recommended</div>
+      <div class="ri">256 GB SSD (or UFS)</div>
+    </div>
+    <div class="req-card req-phys">
+      <span class="req-icon">🖥️</span>
+      <div class="req-title">OS &amp; Security</div>
+      <div class="ri">Windows 11 24H2 minimum</div>
+      <div class="ri">TPM 2.0 mandatory</div>
+      <div class="ri">Windows Hello ESS required</div>
+    </div>
+  </div>
+
+  <h3>Certified Copilot+ devices (NPU ≥ 40 TOPS)</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr>
+        <th>Vendor / Model</th>
+        <th>Chip</th>
+        <th>Family</th>
+        <th>NPU TOPS</th>
+        <th>Segment</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><strong>Microsoft Surface Pro 11</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Business/Pro</td></tr>
+        <tr><td><strong>Microsoft Surface Laptop 7</strong> (13&quot; / 15&quot;)</td><td><span class="chip cq">Snapdragon X Elite / Plus</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Business</td></tr>
+        <tr><td><strong>Microsoft Surface Pro for Business</strong> <span class="new-tag">NEW</span></td><td><span class="chip ci">Intel Core Ultra 200V</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Business</td></tr>
+        <tr><td><strong>Microsoft Surface Laptop for Business</strong> <span class="new-tag">NEW</span></td><td><span class="chip ci">Intel Core Ultra 200V</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Business</td></tr>
+        <tr><td><strong>Dell XPS 13 (9345)</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Consumer/Pro</td></tr>
+        <tr><td><strong>Dell Latitude 7455</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>Dell Latitude 5455</strong></td><td><span class="chip cq">Snapdragon X Plus</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>Lenovo ThinkPad T14s Gen 6</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>Lenovo ThinkPad X1 Carbon Gen 13</strong></td><td><span class="chip ci">Intel Core Ultra 200V</span></td><td>Intel Lunar Lake</td><td><span class="tops t47">47 TOPS</span></td><td>Premium Biz</td></tr>
+        <tr><td><strong>Lenovo Yoga Slim 9i Gen 10</strong></td><td><span class="chip ci">Intel Core Ultra 7 258V</span></td><td>Intel Lunar Lake</td><td><span class="tops t47">47 TOPS</span></td><td>Premium</td></tr>
+        <tr><td><strong>Lenovo Yoga Pro 7 (AMD)</strong></td><td><span class="chip ca">AMD Ryzen AI 9 HX 370</span></td><td>AMD Hawk Point</td><td><span class="tops t50">50 TOPS</span></td><td>Creator</td></tr>
+        <tr><td><strong>HP EliteBook Ultra G1q</strong></td><td><span class="chip cq">Snapdragon X Elite</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>HP OmniBook Ultra Flip 14</strong></td><td><span class="chip ci">Intel Core Ultra 9 288V</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Premium</td></tr>
+        <tr><td><strong>ASUS Zenbook S 16 (UM5606)</strong></td><td><span class="chip ca">AMD Ryzen AI 9 HX 370</span></td><td>AMD Hawk Point</td><td><span class="tops t50">50 TOPS</span></td><td>Consumer</td></tr>
+        <tr><td><strong>ASUS ExpertBook P5</strong></td><td><span class="chip ci">Intel Core Ultra (Series 2)</span></td><td>Intel Lunar Lake</td><td><span class="tops t47">45 TOPS</span></td><td>Enterprise</td></tr>
+        <tr><td><strong>ASUS NUC 14 Pro AI</strong></td><td><span class="chip ci">Intel Core Ultra 7/9 (2xxV)</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Mini PC</td></tr>
+        <tr><td><strong>Samsung Galaxy Book5 Pro 360</strong></td><td><span class="chip ci">Intel Core Ultra (200V)</span></td><td>Intel Lunar Lake</td><td><span class="tops t48">48 TOPS</span></td><td>Premium</td></tr>
+        <tr><td><strong>Acer Swift 14 AI</strong></td><td><span class="chip cq">Snapdragon X Plus</span></td><td>Qualcomm ARM</td><td><span class="tops t45">45 TOPS</span></td><td>Consumer</td></tr>
+        <tr><td><strong>MSI Summit A16 AI+</strong></td><td><span class="chip ca">AMD Ryzen AI 9 HX 370</span></td><td>AMD Hawk Point</td><td><span class="tops t50">50 TOPS</span></td><td>Business</td></tr>
+        <tr><td><strong>GEEKOM A9 Max AI</strong></td><td><span class="chip ca">AMD Ryzen AI 9 HX 370</span></td><td>AMD Hawk Point</td><td><span class="tops t50">50 TOPS</span></td><td>Mini PC</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="callout c-purple">
+    <span class="cl">🔑 The three eligible SoC families</span>
+    <strong>Qualcomm Snapdragon X Elite/Plus</strong> → 45 TOPS · ARM architecture · best battery life · x86 via emulation.<br>
+    <strong>Intel Core Ultra 200V (Lunar Lake)</strong> → 47–48 TOPS · native x86 · best enterprise software compatibility.<br>
+    <strong>AMD Ryzen AI 300 (Hawk Point)</strong> → 50 TOPS · native x86 · best multi-thread performance · Radeon 800M iGPU.
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 03 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">03</span><h2>Windows 365 Cloud PC: technical requirements</h2></div>
+  <p>The AI-enabled Cloud PC delivers the same Copilot+ experience without a physical NPU. The AI compute is hosted on Azure. In return, Cloud PC requirements are more demanding than standard SKUs.</p>
+
+  <h3>Cloud PC requirements (Frontier Preview — March 2026)</h3>
+  <div class="req-grid">
+    <div class="req-card req-cloud">
+      <span class="req-icon">⚙️</span>
+      <div class="req-title">Compute</div>
+      <div class="ri">≥ 8 vCPU</div>
+      <div class="ri">≥ 32 GB RAM</div>
+      <div class="ri">≥ 128 GB disk (new March 2026)</div>
+      <div class="ri">or 256 GB (recommended)</div>
+    </div>
+    <div class="req-card req-cloud">
+      <span class="req-icon">🖥️</span>
+      <div class="req-title">OS</div>
+      <div class="ri">Windows 11 24H2 ≥ build 26100.6584</div>
+      <div class="ri">or 25H2 ≥ build 26200.7840</div>
+      <div class="ri">Retail build now sufficient (no Insider!)</div>
+    </div>
+    <div class="req-card req-cloud">
+      <span class="req-icon">🌍</span>
+      <div class="req-title">Azure Region</div>
+      <div class="ri">West Europe / North Europe</div>
+      <div class="ri">East US / West US</div>
+      <div class="ri">Australia East</div>
+      <div class="ri">Japan East <span class="new-tag">NEW</span></div>
+      <div class="ri">Germany West Central <span class="new-tag">NEW</span></div>
+      <div class="ri">South Central US <span class="new-tag">NEW</span></div>
+      <div class="ri">Canada Central <span class="new-tag">NEW</span></div>
+    </div>
+    <div class="req-card req-cloud">
+      <span class="req-icon">🛡️</span>
+      <div class="req-title">Intune / Licensing</div>
+      <div class="ri">Windows 365 Enterprise SKU</div>
+      <div class="ri">Intune — Cloud PC policy enabled</div>
+      <div class="ri">Entra ID group targeted</div>
+      <div class="ri">Frontier Program enrollment</div>
+    </div>
+  </div>
+
+  <div class="callout c-green">
+    <span class="cl">✅ March 2026 — Windows Insider no longer required</span>
+    As of March 30, 2026, AI-enabled Cloud PCs work with <strong>standard Windows 11 retail builds</strong>. The requirement to enroll in the Windows Insider Program Beta Channel has been removed — this was the single biggest barrier to production enterprise deployment.
+  </div>
+
+  <h3>Activation from Intune (one policy)</h3>
+  <div class="code-block">
+    <div class="code-lbl">Intune Admin Center — Navigation</div>
+    <pre><span class="cmt"># Navigation path</span>
+<span class="fn">Devices</span> → <span class="fn">Device onboarding</span> → <span class="fn">Windows 365</span> → <span class="fn">Settings</span>
+  → <span class="kw">+ Create</span> → <span class="str">Cloud PC configurations (preview)</span>
+
+<span class="cmt"># Minimum configuration</span>
+Name        : <span class="str">"AI-enabled Cloud PC — Frontier"</span>
+AI-enabled features (Frontier) : <span class="val">Enable</span>
+
+<span class="cmt"># Assignment: target Entra ID group</span>
+<span class="cmt"># Activation delay: up to 48h after policy assignment</span>
+<span class="cmt"># Verify: Reports > Cloud PC Overview > AI-enabled column</span></pre>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 04 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">04</span><h2>Available features (Frontier Preview)</h2></div>
+
+  <h3>🔍 Improved Windows Search (Semantic Search)</h3>
+  <p>Traditional Windows search relies on file metadata (name, date, extension). <strong>AI-powered search</strong> interprets the user's intent in natural language and indexes the actual <em>content</em> of documents.</p>
+  <div class="callout c-blue">
+    <span class="cl">Concrete example</span>
+    A photo named <code>IMG_2841.jpg</code> showing a red car. Classic search for "car" → 0 results. Semantic search → the file surfaces. Search covers local files <strong>and</strong> OneDrive simultaneously, with a unified interface in both the taskbar search box and File Explorer.<br><br>
+    <em>Supported languages: French, English, German, Spanish, Japanese, Chinese (Simplified).</em>
+  </div>
+  <p>In comparative testing on OneDrive: AI search returned 37 results versus 10 for classic search on the same corpus — a +270% improvement in recall.</p>
+
+  <h3>🖱️ Click to Do</h3>
+  <p>Click to Do surfaces contextual actions on any visible screen element — selected text, images, web content. Activate via <strong>Windows + Q</strong> or hold Windows key + left click.</p>
+  <div class="callout c-purple">
+    <span class="cl">Available actions (phase 1)</span>
+    On text: Summarize, Translate, Rewrite, Reply, Copy, Open in Copilot.<br>
+    On images: Visual search, Extract text, Describe image, M365 Copilot contextual actions.<br>
+    <em>Coming CY2026: Text Actions via cloud models — the most requested Frontier Preview feature.</em>
+  </div>
+
+  <h3>🔮 Frontier 2026 feature roadmap</h3>
+  <div class="tbl-wrap">
+    <table>
+      <thead><tr><th>Feature</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Improved Windows Search</td><td><span class="badge b-green" style="font-size:11px;">Available</span></td><td>Local + OneDrive, 6 languages</td></tr>
+        <tr><td>Click to Do</td><td><span class="badge b-green" style="font-size:11px;">Available</span></td><td>Win+Q, text &amp; images</td></tr>
+        <tr><td>Click to Do — Text Actions (cloud)</td><td><span class="badge b-amber" style="font-size:11px;">CY26 in progress</span></td><td>Via Azure cloud models</td></tr>
+        <tr><td>Recall</td><td><span class="badge b-red" style="font-size:11px;">Not available</span></td><td>On-device NPU required</td></tr>
+        <tr><td>Windows Studio Effects</td><td><span class="badge b-amber" style="font-size:11px;">Partial</span></td><td>Depends on local NPU/webcam</td></tr>
+        <tr><td>Live Captions + Translation</td><td><span class="badge b-amber" style="font-size:11px;">Incoming</span></td><td>Parity gap to bridge</td></tr>
+        <tr><td>Cocreator (Paint)</td><td><span class="badge b-red" style="font-size:11px;">Not available</span></td><td>Local NPU inference required</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 05 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">05</span><h2>Data &amp; Privacy: where does your data go?</h2></div>
+  <p>This is the first question every CISO and DPO will ask before any POC. Here are precise answers from the official Microsoft documentation.</p>
+
+  <div class="priv-grid">
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot dg"></span>Data processing</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span><strong>Ephemeral processing</strong> via secure Windows 365 cloud service</li>
+        <li><span class="ck">✓</span>No personal data stored in the AI cloud service</li>
+        <li><span class="ck">✓</span>Data is never used to train AI models</li>
+        <li><span class="ck">✓</span>Semantic index stored <strong>in the Cloud PC only</strong></li>
+      </ul>
+    </div>
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot db"></span>Data residency</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>Data stored in the Azure region of the provisioned Cloud PC</li>
+        <li><span class="ck">✓</span><strong>EUDB (European Data Boundary)</strong> supported</li>
+        <li><span class="ck">✓</span>GDPR compliant — per Microsoft Product Terms</li>
+        <li><span class="ck">✓</span>ISO/IEC 27018, ISO 27001 certifications</li>
+      </ul>
+    </div>
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot da"></span>IT Admin controls</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>AI features <strong>disabled by default</strong> — explicit opt-in</li>
+        <li><span class="ck">✓</span>Enable per Entra ID group (user-level granularity)</li>
+        <li><span class="ck">✓</span>Individual disable possible via Intune policy</li>
+        <li><span class="wn">⚠</span>Disable policy takes precedence over Enable in conflict</li>
+      </ul>
+    </div>
+    <div class="priv-card">
+      <div class="priv-title"><span class="dot dp"></span>Retention &amp; Audit</div>
+      <ul class="priv-list">
+        <li><span class="ck">✓</span>User data retained max 90 days post-deletion</li>
+        <li><span class="ck">✓</span>Audit, export, deletion via standard Microsoft Intune</li>
+        <li><span class="ck">✓</span>Defender for Endpoint alerts: 180 days</li>
+        <li><span class="wn">⚠</span>Optional diagnostic data required (Windows Privacy Settings)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout c-green">
+    <span class="cl">✅ Bottom line for CISOs &amp; DPOs</span>
+    AI inference data never leaves your Azure perimeter. The semantic index stays inside the Cloud PC. No data is used for model retraining. The service complies with EUDB and GDPR — a major differentiator versus third-party AI tools that pool data across tenants.
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 06 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">06</span><h2>Timeline: from Microsoft Ignite to March 2026 updates</h2></div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-date">May 2024</div>
+      <div class="tl-title">Copilot+ PC physical launch</div>
+      <div class="tl-body">Surface Pro 11, Surface Laptop 7, first Snapdragon X Elite models. Copilot+ features exclusive to on-device NPU.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">September 2024</div>
+      <div class="tl-title">AMD &amp; Intel expansion</div>
+      <div class="tl-body">AMD Ryzen AI 300 and Intel Core Ultra 200V join the Copilot+ ecosystem. End of Qualcomm exclusivity.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">November 2025 — Ignite</div>
+      <div class="tl-title">Windows 365 AI-enabled Cloud PC announced</div>
+      <div class="tl-body">First public preview. Windows Insider Program Beta Channel required. Limited regions. Minimum SKU 8vCPU/32GB/256GB.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">January 2026</div>
+      <div class="tl-title">Frontier Program expansion</div>
+      <div class="tl-body">Broader enterprise availability. AI-enabled report in Intune (Initiated / Ready / Failed). Windows IT Pro Blog published.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">March 2026 — Today</div>
+      <div class="tl-title">4 major simultaneous improvements</div>
+      <div class="tl-body">
+        <strong>1.</strong> Windows Insider Program no longer required — retail builds sufficient.<br>
+        <strong>2.</strong> 128 GB disk support (entry-level SKU).<br>
+        <strong>3.</strong> 4 new Azure regions: Japan East, Germany West Central, South Central US, Canada Central.<br>
+        <strong>4.</strong> New UX with "AI-Enabled (Frontier)" tag in Windows App.
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-date">CY 2026 — Roadmap</div>
+      <div class="tl-title">Closing parity gaps via cloud models</div>
+      <div class="tl-body">Text Actions for Click to Do via Azure cloud models. Cost optimization, reliability, new productivity experiences. Target: large-scale enterprise deployments.</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 07 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">07</span><h2>Physical Copilot+ PC vs AI Cloud PC: comparison</h2></div>
+  <div class="tbl-wrap">
+    <table class="cmp">
+      <thead><tr>
+        <th>Criteria</th>
+        <th>Physical Copilot+ PC</th>
+        <th>AI-enabled Cloud PC</th>
+      </tr></thead>
+      <tbody>
+        <tr><td><strong>NPU required</strong></td><td><span class="tick">✓</span> 40+ TOPS hardware</td><td><span class="tick">✓</span> Simulated in Azure</td></tr>
+        <tr><td><strong>Client device</strong></td><td>Certified Copilot+ machine only</td><td>Any device (PC, Mac, iPad…)</td></tr>
+        <tr><td><strong>Improved Search</strong></td><td><span class="tick">✓</span> On-device</td><td><span class="tick">✓</span> Via cloud service</td></tr>
+        <tr><td><strong>Click to Do</strong></td><td><span class="tick">✓</span> Full</td><td><span class="half">⚡</span> Partial (Text Actions incoming)</td></tr>
+        <tr><td><strong>Recall</strong></td><td><span class="tick">✓</span> On-device, encrypted</td><td><span class="cross">✗</span> Not available</td></tr>
+        <tr><td><strong>Live Captions + Translation</strong></td><td><span class="tick">✓</span> 40+ languages</td><td><span class="half">⚡</span> In development</td></tr>
+        <tr><td><strong>Windows Studio Effects</strong></td><td><span class="tick">✓</span> Full NPU</td><td><span class="half">⚡</span> Partial</td></tr>
+        <tr><td><strong>Privacy / latency</strong></td><td>100% local, zero network latency</td><td>Ephemeral Azure processing, data in Cloud PC</td></tr>
+        <tr><td><strong>Intune management</strong></td><td><span class="tick">✓</span> Standard</td><td><span class="tick">✓</span> + Dedicated AI-enabled policy</td></tr>
+        <tr><td><strong>EUDB / GDPR</strong></td><td><span class="tick">✓</span> On-device</td><td><span class="tick">✓</span> Azure region of Cloud PC</td></tr>
+        <tr><td><strong>Cost</strong></td><td>Physical hardware refresh</td><td>Enterprise SKU ≥ 8vCPU/32GB</td></tr>
+        <tr><td><strong>Deployment</strong></td><td>Physical refresh required</td><td>Intune toggle, immediate</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 08 EN -->
+<section class="section">
+  <div class="sec-hdr"><span class="sec-num">08</span><h2>Enterprise impact: what you need to act on now</h2></div>
+  <p>From my experience managing large enterprise fleets (10,000+ endpoints, VDI architectures, Intune at scale), here are the angles that matter most:</p>
+  <div class="callout c-amber">
+    <span class="cl">📊 Immediate use case</span>
+    Organizations already running Windows 365 Enterprise with ≥ 8vCPU/32GB SKUs — analytics workstations, developer profiles, heavy VDI — can <strong>activate AI features with a single Intune toggle</strong>. No additional budget, no migration. This is the fastest POC of 2026.
+  </div>
+  <div class="callout c-red">
+    <span class="cl">⚠️ Watch out for</span>
+    <strong>1. SKU sizing:</strong> 2vCPU/4GB or 4vCPU/8GB SKUs are not eligible. Verify your Windows 365 catalog before communicating availability to business stakeholders.<br>
+    <strong>2. Azure region:</strong> Confirm Cloud PCs are provisioned in a supported region. Germany West Central is now available — great news for GDPR compliance for German operations.<br>
+    <strong>3. Diagnostic data:</strong> Optional diagnostic data must be enabled (required for semantic indexing). Document in your DPIA if subject to GDPR.<br>
+    <strong>4. Recall absent:</strong> The session "memory" feature is not available on Cloud PC — local NPU inference remains required for this workload.
+  </div>
+  <p>Also worth monitoring: the convergence with <strong>Windows 365 for Agents</strong>, announced in parallel, which will eventually allow autonomous AI agents to run on Cloud PCs — enabling large-scale enterprise automation without dedicated infrastructure.</p>
+
+  <div class="tag-strip">
+    <span class="tag">#Windows365</span>
+    <span class="tag">#CopilotPlus</span>
+    <span class="tag">#AICloud</span>
+    <span class="tag">#Intune</span>
+    <span class="tag">#Microsoft365</span>
+    <span class="tag">#FrontierPreview</span>
+    <span class="tag">#EnterpriseAI</span>
+    <span class="tag">#EndpointManagement</span>
+    <span class="tag">#NPU</span>
+    <span class="tag">#CloudPC</span>
+    <span class="tag">#GDPR</span>
+    <span class="tag">#EUDB</span>
+  </div>
+</section>
+
+</main>
+</div><!-- END .lang-en -->
+
+<!-- FOOTER (shared) -->
+<footer class="footer">
+  <strong style="color:var(--heading);">Thomas Andres</strong> · Senior IT Infrastructure Architect · AL-Conseil<br>
+  <a href="https://alconseil.github.io/Linkedin/index.html">→ All articles</a> · 
+  Sources: <a href="https://learn.microsoft.com/en-us/windows-365/enterprise/ai-enabled-cloud-pcs">Microsoft Learn</a> · 
+  <a href="https://techcommunity.microsoft.com/discussions/windows365discussions/expanding-the-reach-of-ai-enabled-cloud-pcs-for-frontier-firms/4506977">Tech Community (30 mars 2026)</a>
+</footer>
+
+<!-- DALL-E COVER IMAGE PROMPT ─────────────────────────────────────
+Prompt: Cinematic dark-tech illustration for a LinkedIn article cover.
+A glowing translucent cloud shaped like a neural chip floats above a
+sleek ultrabook laptop. Inside the cloud, thousands of tiny connected
+nodes pulse with cyan and violet light, representing distributed AI
+inference. The laptop screen shows a Windows search bar with a sparkle
+icon. Background: deep space dark with a subtle electric-blue grid.
+Style: photorealistic 3D render, HDR lighting, deep shadows,
+tech-editorial mood. Aspect ratio 1.91:1 (LinkedIn cover).
+──────────────────────────────────────────────────────────────────── -->
+
+<script>
+function setLang(lang) {
+  document.body.className = 'show-' + lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.lang-btn[onclick*="' + lang + '"]').classList.add('active');
+}
+</script>
+</body>
+</html>
