@@ -1,268 +1,185 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Thomas Andres — LinkedIn Articles</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 <style>
-  :root {
-    --bg:        #080d14;
-    --surface:   #0e1520;
-    --surface2:  #141e2e;
-    --border:    #1e2d45;
-    --primary:   #38bdf8;
-    --primary-dim:#1d6e99;
-    --text:      #e2e8f0;
-    --muted:     #64748b;
-    --heading:   #f1f5f9;
-  }
+:root{
+  --bg:#0d0f14;--bg2:#13161e;--bg3:#1a1e28;--border:#252a38;
+  --text:#d4d8e8;--muted:#6b7290;--accent:#e84a4a;--accent2:#f97316;
+  --blue:#3b82f6;--green:#22c55e;--purple:#a855f7;--yellow:#eab308;
+  --white:#f0f2fa;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;
+  font-size:15px;line-height:1.7;min-height:100vh;}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* ── SITE HEADER ── */
+.site-header{
+  border-bottom:1px solid var(--border);
+  padding:16px 40px;
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);
+}
+.site-header .breadcrumb span{color:var(--blue);}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: 14px;
-    line-height: 1.7;
-    min-height: 100vh;
-  }
+/* ── HERO ── */
+.hero{
+  max-width:900px;margin:0 auto;
+  padding:64px 40px 48px;
+  border-bottom:1px solid var(--border);
+}
+.hero h1{
+  font-family:'Syne',sans-serif;font-size:clamp(28px,4vw,44px);
+  font-weight:800;color:var(--white);margin-bottom:14px;
+}
+.hero p{color:var(--muted);max-width:560px;font-size:15px;}
 
-  a { color: inherit; text-decoration: none; }
+/* ── ARTICLES GRID ── */
+.articles-wrap{max-width:900px;margin:0 auto;padding:48px 40px 80px;}
+.articles-label{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:24px;padding-bottom:12px;border-bottom:1px solid var(--border);
+}
 
-  /* HEADER */
-  header {
-    border-bottom: 1px solid var(--border);
-    padding: 48px 48px 40px;
-    background: linear-gradient(135deg, #071525 0%, #0c1f38 100%);
-    position: relative;
-    overflow: hidden;
-  }
-  header::before {
-    content: '';
-    position: absolute;
-    top: -80px; right: -80px;
-    width: 360px; height: 360px;
-    background: radial-gradient(circle, rgba(56,189,248,.07) 0%, transparent 70%);
-    pointer-events: none;
-  }
-  .header-inner { max-width: 1000px; margin: 0 auto; position: relative; }
+/* ── ARTICLE CARD ── */
+.card{
+  display:grid;grid-template-columns:52px 1fr;gap:0;
+  border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:16px;
+  background:var(--bg2);transition:border-color .15s;
+  text-decoration:none;color:inherit;
+}
+.card:hover{border-color:rgba(59,130,246,.4);}
+.card.pending{opacity:.6;}
 
-  .breadcrumb {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 18px;
-  }
-  .breadcrumb span { color: var(--primary); }
+.card-num{
+  background:var(--bg3);border-right:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
+  color:var(--muted);padding:24px 0;
+}
+.card-body{padding:22px 24px;}
 
-  header h1 {
-    font-family: 'Syne', sans-serif;
-    font-size: clamp(28px, 4vw, 40px);
-    font-weight: 800;
-    color: var(--heading);
-    margin-bottom: 10px;
-  }
+.card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
 
-  header p {
-    font-size: 14px;
-    color: var(--muted);
-    max-width: 560px;
-    line-height: 1.65;
-  }
+/* status badges */
+.status{
+  font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;
+  border-radius:3px;border:1px solid;
+}
+.status.new    {color:var(--green); border-color:rgba(34,197,94,.4); background:rgba(34,197,94,.1);}
+.status.live   {color:var(--blue);  border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.1);}
+.status.pending{color:var(--muted); border-color:var(--border);      background:var(--bg3);}
 
-  /* MAIN */
-  main {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 48px 48px 80px;
-  }
+.card-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);}
+.card-category{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);
+  background:var(--bg3);border:1px solid var(--border);border-radius:3px;
+  padding:1px 7px;margin-left:auto;
+}
 
-  .section-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 28px;
-  }
-  .section-header h2 {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-  .section-header .count {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 11px;
-    color: var(--primary);
-    background: rgba(56,189,248,.08);
-    border: 1px solid var(--primary-dim);
-    padding: 2px 8px;
-    border-radius: 3px;
-  }
-  .section-divider {
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
+.card h3{
+  font-family:'Syne',sans-serif;font-size:17px;font-weight:700;
+  color:var(--white);margin-bottom:8px;line-height:1.3;
+}
+.card p{font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.6;}
 
-  /* ARTICLE GRID */
-  .articles {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  @media (max-width: 700px) {
-    .articles { grid-template-columns: 1fr; }
-    header, main { padding-left: 24px; padding-right: 24px; }
-  }
+/* tag pills */
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.tag{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;
+  color:var(--muted);background:var(--bg);
+  border:1px solid var(--border);border-radius:3px;padding:2px 8px;
+}
 
-  /* CARD */
-  .card {
-    display: block;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 24px;
-    transition: border-color .2s, transform .2s, box-shadow .2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .card:hover {
-    border-color: var(--primary-dim);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0,0,0,.3);
-  }
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    opacity: 0;
-    transition: opacity .2s;
-  }
-  .card:hover::before { opacity: 1; }
-  .card.accent-blue::before  { background: linear-gradient(90deg, #38bdf8, transparent); }
-  .card.accent-red::before   { background: linear-gradient(90deg, #ef4444, transparent); }
-  .card.accent-amber::before { background: linear-gradient(90deg, #f59e0b, transparent); }
+/* card link line */
+.card-link{
+  display:flex;align-items:center;justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;font-size:11px;
+  color:var(--blue);padding-top:10px;border-top:1px solid var(--border);
+}
+.card-link .arrow{font-size:14px;}
 
-  .card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-  }
-  .card-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+/* ── FOOTER ── */
+.site-footer{
+  border-top:1px solid var(--border);
+  padding:20px 40px;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--muted);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  max-width:100%;
+}
+.site-footer a{color:var(--blue);text-decoration:none;}
 
-  .status {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 9px;
-    font-weight: 500;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    padding: 2px 8px;
-    border-radius: 3px;
-    border: 1px solid;
-  }
-  .status-new     { color: #38bdf8; border-color: rgba(56,189,248,.35);  background: rgba(56,189,248,.08); }
-  .status-live    { color: #10b981; border-color: rgba(16,185,129,.35);  background: rgba(16,185,129,.08); }
-  .status-pending { color: #64748b; border-color: rgba(100,116,139,.35); background: rgba(100,116,139,.06); }
-
-  .card-date     { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); }
-  .card-category { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); }
-
-  .card h3 {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--heading);
-    line-height: 1.3;
-    margin-bottom: 10px;
-  }
-  .card p {
-    font-size: 13px;
-    color: #94a3b8;
-    line-height: 1.6;
-    margin-bottom: 16px;
-  }
-
-  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
-  .tag {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 3px;
-    background: #0f2038;
-    color: var(--muted);
-    border: 1px solid var(--border);
-  }
-
-  .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-  }
-  .card-filename { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #334155; }
-  .card-arrow { font-size: 16px; color: var(--primary-dim); transition: color .2s, transform .2s; }
-  .card:hover .card-arrow { color: var(--primary); transform: translateX(3px); }
-
-  /* FOOTER */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 24px 48px;
-    max-width: 1000px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  footer span { font-size: 12px; color: var(--muted); }
-  footer a { color: var(--primary); font-size: 12px; }
+@media(max-width:640px){
+  .site-header,.hero,.articles-wrap,.site-footer{padding-left:20px;padding-right:20px;}
+  .card{grid-template-columns:40px 1fr;}
+  .card-num{font-size:14px;}
+}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-inner">
-    <div class="breadcrumb">alconseil.github.io / <span>LinkedIn</span></div>
-    <h1>Thomas Andres</h1>
-    <p>Technical articles on enterprise endpoint management, cloud infrastructure, security hardening, and large-scale migration projects.</p>
-  </div>
+<!-- SITE HEADER -->
+<header class="site-header">
+  <span class="breadcrumb"><span>alconseil.github.io</span> / LinkedIn</span>
+  <span>Thomas Andres</span>
 </header>
 
-<main>
-  <div class="section-header">
-    <h2>Published Articles</h2>
-    <span class="count">06</span>
-    <div class="section-divider"></div>
-  </div>
+<!-- HERO -->
+<div class="hero">
+  <h1>Thomas Andres</h1>
+  <p>Technical articles on enterprise endpoint management, cloud infrastructure, security hardening, and large-scale migration projects.</p>
+</div>
 
-  <div class="articles">
+<!-- ARTICLES -->
+<main class="articles-wrap">
+  <div class="articles-label">Published Articles</div>
 
-    <!-- 01 — Intune RBAC 2026 (NEW) -->
-    <a href="intune-rbac-changes-2026.html" class="card accent-blue">
+  <!-- 07 — COMPAS Breach (NEW) -->
+  <a class="card" href="compas-breach-article.html">
+    <div class="card-num">07</div>
+    <div class="card-body">
       <div class="card-top">
-        <div class="card-meta">
-          <span class="status status-new">New</span>
-          <span class="card-date">March 2026</span>
-        </div>
+        <span class="status new">New</span>
+        <span class="card-date">April 2026</span>
+        <span class="card-category">Security · Identity</span>
+      </div>
+      <h3>COMPAS Breach — One Stale Account Exposes 243,000 French Teachers</h3>
+      <p>A compromised external account with no MFA gave an attacker 4 days of silent access to the French Ministry of Education HR system. Credential stuffing vector, Hexdex actor, 243K agents exposed. PowerShell dormant account audit + KQL detection rules (geolocation, impossible travel, bulk read anomaly). Bilingual FR/EN.</p>
+      <div class="tag-row">
+        <span class="tag">Credential Compromise</span>
+        <span class="tag">MFA</span>
+        <span class="tag">Entra ID</span>
+        <span class="tag">KQL Sentinel</span>
+        <span class="tag">PowerShell</span>
+        <span class="tag">Data Breach</span>
+      </div>
+      <div class="card-link">
+        <span>compas-breach-article.html</span>
+        <span class="arrow">→</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- 06 — Intune RBAC -->
+  <a class="card" href="intune-rbac-changes-2026.html">
+    <div class="card-num">06</div>
+    <div class="card-body">
+      <div class="card-top">
+        <span class="status new">New</span>
+        <span class="card-date">March 2026</span>
         <span class="card-category">Security · RBAC</span>
       </div>
       <h3>Intune RBAC — What's About to Change (and Why It Can't Wait)</h3>
       <p>Scope tag decoupling, Multi-Admin Approval extended to role changes, PIM for Groups best practices. Triggered by the March 2026 medtech mass-wipe incident. Bilingual FR/EN with PowerShell audit script.</p>
-      <div class="tags">
+      <div class="tag-row">
         <span class="tag">Intune</span>
         <span class="tag">RBAC</span>
         <span class="tag">ScopeTag Decoupling</span>
@@ -270,24 +187,25 @@
         <span class="tag">PIM</span>
         <span class="tag">Zero Trust</span>
       </div>
-      <div class="card-footer">
-        <span class="card-filename">intune-rbac-changes-2026.html</span>
-        <span class="card-arrow">→</span>
+      <div class="card-link">
+        <span>intune-rbac-changes-2026.html</span>
+        <span class="arrow">→</span>
       </div>
-    </a>
+    </div>
+  </a>
 
-    <!-- 02 — CVE-2026-3055 (NEW) -->
-    <a href="cve-2026-3055-netscaler.html" class="card accent-red">
+  <!-- 05 — CVE-2026-3055 -->
+  <a class="card" href="cve-2026-3055-netscaler.html">
+    <div class="card-num">05</div>
+    <div class="card-body">
       <div class="card-top">
-        <div class="card-meta">
-          <span class="status status-new">New</span>
-          <span class="card-date">March 2026</span>
-        </div>
+        <span class="status new">New</span>
+        <span class="card-date">March 2026</span>
         <span class="card-category">Security · CVE</span>
       </div>
       <h3>CVE-2026-3055 — The CitrixBleed Pattern Strikes Again</h3>
       <p>Critical unauthenticated memory overread in NetScaler ADC and Gateway (CVSS 9.3). Active reconnaissance confirmed. SAML IDP configuration in scope. Five Microsoft Sentinel KQL detection rules included.</p>
-      <div class="tags">
+      <div class="tag-row">
         <span class="tag">CVSS 9.3</span>
         <span class="tag">NetScaler</span>
         <span class="tag">SAML IDP</span>
@@ -295,72 +213,75 @@
         <span class="tag">KQL Sentinel</span>
         <span class="tag">CitrixBleed</span>
       </div>
-      <div class="card-footer">
-        <span class="card-filename">cve-2026-3055-netscaler.html</span>
-        <span class="card-arrow">→</span>
+      <div class="card-link">
+        <span>cve-2026-3055-netscaler.html</span>
+        <span class="arrow">→</span>
       </div>
-    </a>
+    </div>
+  </a>
 
-    <!-- 03 — Stryker (LIVE) -->
-    <a href="stryker-intune-attack.html" class="card accent-red">
+  <!-- 04 — Stryker -->
+  <a class="card" href="stryker-intune-attack.html">
+    <div class="card-num">04</div>
+    <div class="card-body">
       <div class="card-top">
-        <div class="card-meta">
-          <span class="status status-live">Live</span>
-          <span class="card-date">2025</span>
-        </div>
+        <span class="status live">Live</span>
+        <span class="card-date">2025</span>
         <span class="card-category">Security · Incident</span>
       </div>
       <h3>Stryker &amp; the Intune Cyberattack — AiTM, Bulk Wipe, and What Defenders Must Learn</h3>
       <p>Deep dive into the Handala threat actor's AiTM phishing campaign targeting Intune. Mass device wipe, Sentinel KQL detection rules, and SOAR playbook design.</p>
-      <div class="tags">
+      <div class="tag-row">
         <span class="tag">Intune</span>
         <span class="tag">AiTM Phishing</span>
         <span class="tag">Sentinel KQL</span>
         <span class="tag">SOAR</span>
         <span class="tag">Handala</span>
       </div>
-      <div class="card-footer">
-        <span class="card-filename">stryker-intune-attack.html</span>
-        <span class="card-arrow">→</span>
+      <div class="card-link">
+        <span>stryker-intune-attack.html</span>
+        <span class="arrow">→</span>
       </div>
-    </a>
+    </div>
+  </a>
 
-    <!-- 04 — VDI Comparison (LIVE) -->
-    <a href="vdi-comparison-linkedin-en.html" class="card accent-blue">
+  <!-- 03 — VDI Comparison -->
+  <a class="card" href="vdi-comparison-linkedin-en.html">
+    <div class="card-num">03</div>
+    <div class="card-body">
       <div class="card-top">
-        <div class="card-meta">
-          <span class="status status-live">Live</span>
-          <span class="card-date">2025</span>
-        </div>
+        <span class="status live">Live</span>
+        <span class="card-date">2025</span>
         <span class="card-category">Architecture · VDI</span>
       </div>
       <h3>Citrix vs. AWS WorkSpaces — Choosing Your VDI Strategy at Enterprise Scale</h3>
       <p>Head-to-head comparison of Citrix Virtual Apps &amp; Desktops and AWS WorkSpaces for large enterprise deployments. Cost modeling, identity architecture, and migration considerations.</p>
-      <div class="tags">
+      <div class="tag-row">
         <span class="tag">Citrix</span>
         <span class="tag">AWS WorkSpaces</span>
         <span class="tag">VDI</span>
         <span class="tag">Architecture</span>
         <span class="tag">Migration</span>
       </div>
-      <div class="card-footer">
-        <span class="card-filename">vdi-comparison-linkedin-en.html</span>
-        <span class="card-arrow">→</span>
+      <div class="card-link">
+        <span>vdi-comparison-linkedin-en.html</span>
+        <span class="arrow">→</span>
       </div>
-    </a>
+    </div>
+  </a>
 
-    <!-- 06 — AI-enabled Cloud PC (NEW) -->
-    <a href="ai-cloud-pc-frontier.html" class="card accent-blue">
+  <!-- 02 — AI Cloud PC -->
+  <a class="card" href="ai-cloud-pc-frontier.html">
+    <div class="card-num">02</div>
+    <div class="card-body">
       <div class="card-top">
-        <div class="card-meta">
-          <span class="status status-new">New</span>
-          <span class="card-date">March 2026</span>
-        </div>
+        <span class="status new">New</span>
+        <span class="card-date">March 2026</span>
         <span class="card-category">Cloud · AI · Endpoint</span>
       </div>
       <h3>AI-enabled Cloud PC (Frontier Preview) — The Copilot+ PC Without the PC</h3>
       <p>Windows 365 streams Copilot+ AI experiences to any device — no local NPU required. Full certified device catalogue (40+ TOPS), Cloud PC requirements, data residency &amp; GDPR analysis. March 2026 updates: no more Windows Insider, 4 new Azure regions, 128 GB disk support. Bilingual FR/EN.</p>
-      <div class="tags">
+      <div class="tag-row">
         <span class="tag">Windows 365</span>
         <span class="tag">Copilot+</span>
         <span class="tag">NPU</span>
@@ -368,39 +289,41 @@
         <span class="tag">Intune</span>
         <span class="tag">EUDB</span>
       </div>
-      <div class="card-footer">
-        <span class="card-filename">ai-cloud-pc-frontier.html</span>
-        <span class="card-arrow">→</span>
+      <div class="card-link">
+        <span>ai-cloud-pc-frontier.html</span>
+        <span class="arrow">→</span>
       </div>
-    </a>
+    </div>
+  </a>
 
-    <!-- 05 — Stoatwaffle (PENDING) -->
-    <a href="stoatwaffle_article.html" class="card accent-amber">
+  <!-- 01 — stoatwaffle -->
+  <a class="card pending" href="stoatwaffle_article.html">
+    <div class="card-num">01</div>
+    <div class="card-body">
       <div class="card-top">
-        <div class="card-meta">
-          <span class="status status-pending">Pending</span>
-          <span class="card-date">2025</span>
-        </div>
+        <span class="status pending">Pending</span>
+        <span class="card-date">2025</span>
         <span class="card-category">Security · Windows</span>
       </div>
       <h3>stoatwaffle — Article</h3>
       <p>Generated but not yet published. See local file stoatwaffle_article.html for content.</p>
-      <div class="tags">
+      <div class="tag-row">
         <span class="tag">Windows</span>
         <span class="tag">Security</span>
       </div>
-      <div class="card-footer">
-        <span class="card-filename">stoatwaffle_article.html</span>
-        <span class="card-arrow">→</span>
+      <div class="card-link">
+        <span>stoatwaffle_article.html</span>
+        <span class="arrow">→</span>
       </div>
-    </a>
+    </div>
+  </a>
 
-  </div>
 </main>
 
-<footer>
+<!-- FOOTER -->
+<footer class="site-footer">
   <span>Thomas Andres · Senior IT Infrastructure Architect · AL-Conseil</span>
-  <a href="https://alconseil.github.io/Linkedin/">alconseil.github.io/Linkedin</a>
+  <a href="https://alconseil.github.io/Linkedin">alconseil.github.io/Linkedin</a>
 </footer>
 
 </body>
