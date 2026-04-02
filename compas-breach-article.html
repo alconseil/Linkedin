@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Brèche COMPAS — 243 000 enseignants exposés | Thomas Andres</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#0d0f14;--bg2:#13161e;--bg3:#1a1e28;--border:#252a38;
+  --text:#d4d8e8;--muted:#6b7290;--accent:#e84a4a;--accent2:#f97316;
+  --blue:#3b82f6;--green:#22c55e;--purple:#a855f7;--yellow:#eab308;
+  --white:#f0f2fa;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;
+  font-size:15px;line-height:1.75;max-width:900px;margin:0 auto;padding:0 24px 80px;}
+
+/* ── LANG TOGGLE ── */
+.lang-bar{display:flex;justify-content:flex-end;padding:16px 0 0;gap:8px;position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--border);margin-bottom:0;}
+.lang-btn{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+  padding:4px 12px;border-radius:4px;border:1px solid var(--border);cursor:pointer;
+  background:var(--bg2);color:var(--muted);transition:all .15s;}
+.lang-btn.active{background:rgba(59,130,246,.15);color:var(--blue);border-color:rgba(59,130,246,.4);}
+.lang-btn:hover:not(.active){color:var(--white);}
+
+/* ── BILINGUAL PAIRS ── */
+.fr-content,.en-content{display:none;}
+body.lang-fr .fr-content,body.lang-en .en-content{display:block;}
+body.lang-fr .fr-inline,body.lang-en .en-inline{display:inline;}
+.fr-inline,.en-inline{display:none;}
+.bilingual{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:20px 0;}
+.bilingual .bl-fr,.bilingual .bl-en{padding:16px 18px;font-size:13.5px;}
+.bilingual .bl-fr{border-right:1px solid var(--border);background:rgba(59,130,246,.03);}
+.bilingual .bl-en{background:rgba(34,197,94,.03);}
+.bilingual .bl-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;color:var(--muted);}
+
+/* ── HERO ── */
+.hero{position:relative;padding:52px 0 44px;border-bottom:1px solid var(--border);margin-bottom:48px;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 55% at 80% 20%,rgba(232,74,74,.10) 0%,transparent 70%),
+             radial-gradient(ellipse 45% 35% at 15% 85%,rgba(59,130,246,.07) 0%,transparent 60%);
+  pointer-events:none;}
+.hero-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px;}
+.badges{display:flex;gap:8px;flex-wrap:wrap;}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.1em;
+  text-transform:uppercase;padding:3px 10px;border-radius:3px;border:1px solid;}
+.badge-red  {color:var(--accent); border-color:rgba(232,74,74,.4); background:rgba(232,74,74,.08);}
+.badge-blue {color:var(--blue);   border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08);}
+.badge-gray {color:var(--muted);  border-color:var(--border);      background:var(--bg2);}
+.badge-org  {color:var(--accent2);border-color:rgba(249,115,22,.4);background:rgba(249,115,22,.08);}
+.badge-grn  {color:var(--green);  border-color:rgba(34,197,94,.4); background:rgba(34,197,94,.08);}
+
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(24px,4.5vw,40px);font-weight:800;
+  line-height:1.15;color:var(--white);margin-bottom:16px;}
+.hero h1 span.acc{color:var(--accent);}
+.hero-sub{font-size:15.5px;color:var(--muted);max-width:640px;line-height:1.7;margin-bottom:32px;}
+
+/* stat pills */
+.stat-row{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:12px 18px;min-width:130px;}
+.stat-pill .num{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;
+  color:var(--white);display:block;}
+.stat-pill .num.red   {color:var(--accent);}
+.stat-pill .num.org   {color:var(--accent2);}
+.stat-pill .num.blue  {color:var(--blue);}
+.stat-pill .num.yellow{color:var(--yellow);}
+.stat-pill .lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);}
+
+/* author chip */
+.author-chip{display:flex;align-items:center;gap:10px;margin-top:28px;}
+.author-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;
+  font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.author-info{font-size:12.5px;color:var(--muted);}
+.author-info strong{color:var(--white);font-size:13px;}
+
+/* ── SECTIONS ── */
+.section{margin-bottom:48px;}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:22px;
+  padding-bottom:12px;border-bottom:1px solid var(--border);}
+.snum{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--accent);background:rgba(232,74,74,.1);
+  border:1px solid rgba(232,74,74,.25);border-radius:4px;padding:2px 8px;white-space:nowrap;}
+.snum.blue  {color:var(--blue);  background:rgba(59,130,246,.1); border-color:rgba(59,130,246,.25);}
+.snum.green {color:var(--green); background:rgba(34,197,94,.1);  border-color:rgba(34,197,94,.25);}
+.snum.purple{color:var(--purple);background:rgba(168,85,247,.1); border-color:rgba(168,85,247,.25);}
+.snum.org   {color:var(--accent2);background:rgba(249,115,22,.1);border-color:rgba(249,115,22,.25);}
+
+.section h2{font-family:'Syne',sans-serif;font-size:19px;font-weight:700;color:var(--white);}
+p{margin-bottom:14px;}
+p:last-child{margin-bottom:0;}
+
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:28px;margin:24px 0;}
+.timeline::before{content:'';position:absolute;left:7px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(to bottom,var(--accent),var(--blue),var(--green));opacity:.35;}
+.tl-item{position:relative;margin-bottom:20px;}
+.tl-item::before{content:'';position:absolute;left:-24px;top:7px;width:10px;height:10px;
+  border-radius:50%;border:2px solid;}
+.tl-item.red::before   {background:rgba(232,74,74,.3); border-color:var(--accent);}
+.tl-item.org::before   {background:rgba(249,115,22,.3);border-color:var(--accent2);}
+.tl-item.ylw::before   {background:rgba(234,179,8,.3); border-color:var(--yellow);}
+.tl-item.blue::before  {background:rgba(59,130,246,.3);border-color:var(--blue);}
+.tl-item.green::before {background:rgba(34,197,94,.3); border-color:var(--green);}
+.tl-item.purple::before{background:rgba(168,85,247,.3);border-color:var(--purple);}
+.tl-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);letter-spacing:.06em;}
+.tl-title{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:var(--white);margin:2px 0 4px;}
+.tl-desc{font-size:13.5px;}
+
+/* ── CALLOUT ── */
+.callout{border-radius:8px;border-left:3px solid;padding:15px 18px;margin:18px 0;font-size:14px;}
+.callout.bad   {background:rgba(232,74,74,.06);border-color:var(--accent); color:#f9a8a8;}
+.callout.warn  {background:rgba(249,115,22,.06);border-color:var(--accent2);color:#fcd0a0;}
+.callout.info  {background:rgba(59,130,246,.06);border-color:var(--blue);   color:#93c5fd;}
+.callout.ok    {background:rgba(34,197,94,.06); border-color:var(--green);  color:#86efac;}
+.callout.purple{background:rgba(168,85,247,.06);border-color:var(--purple); color:#d8b4fe;}
+.callout strong{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;opacity:.8;}
+
+/* ── CODE ── */
+.code-wrap{margin:18px 0;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+.code-label{background:var(--bg3);border-bottom:1px solid var(--border);
+  padding:7px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  color:var(--muted);letter-spacing:.06em;display:flex;align-items:center;gap:8px;}
+.code-label .lang{background:var(--border);border-radius:3px;padding:1px 6px;
+  font-size:10px;color:var(--blue);}
+pre{margin:0;padding:16px;background:#0a0c10;overflow-x:auto;
+  font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.65;color:#abb2bf;}
+.kw{color:#c678dd;}.fn{color:#61afef;}.str{color:#98c379;}
+.cm{color:#5c6370;font-style:italic;}.op{color:#56b6c2;}.vr{color:#e06c75;}.nm{color:#d19a66;}
+
+/* ── ATK/DEF ── */
+.atkdef{display:grid;grid-template-columns:1fr 1fr;gap:0;
+  border:1px solid var(--border);border-radius:8px;overflow:hidden;margin:20px 0;}
+.atkdef-col{padding:18px;}
+.atkdef-col:first-child{border-right:1px solid var(--border);background:rgba(232,74,74,.04);}
+.atkdef-col:last-child{background:rgba(34,197,94,.04);}
+.atkdef-col h4{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;margin-bottom:12px;}
+.atkdef-col:first-child h4{color:var(--accent);}
+.atkdef-col:last-child h4{color:var(--green);}
+.atkdef-item{display:flex;gap:10px;margin-bottom:9px;font-size:13px;}
+.atkdef-item .dot{width:6px;height:6px;border-radius:50%;margin-top:7px;flex-shrink:0;}
+.atkdef-col:first-child .dot{background:var(--accent);}
+.atkdef-col:last-child  .dot{background:var(--green);}
+
+/* ── PRIORITY GRID ── */
+.priority-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:12px;margin:18px 0;}
+.pcard{background:var(--bg2);border:1px solid var(--border);border-radius:8px;
+  padding:16px;position:relative;overflow:hidden;}
+.pcard::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.pcard.p0::before{background:var(--accent);}
+.pcard.p1::before{background:var(--accent2);}
+.pcard.p2::before{background:var(--yellow);}
+.pcard.p3::before{background:var(--green);}
+.pcard .ptag{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;
+  letter-spacing:.1em;margin-bottom:8px;}
+.pcard.p0 .ptag{color:var(--accent);}
+.pcard.p1 .ptag{color:var(--accent2);}
+.pcard.p2 .ptag{color:var(--yellow);}
+.pcard.p3 .ptag{color:var(--green);}
+.pcard h4{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;
+  color:var(--white);margin-bottom:6px;}
+.pcard p{font-size:12.5px;color:var(--muted);margin:0;}
+
+/* ── TABLE ── */
+.checklist{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px;}
+.checklist th{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--border);background:var(--bg2);}
+.checklist td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+.checklist tr:last-child td{border-bottom:none;}
+.checklist tr:hover td{background:var(--bg2);}
+.mark{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;
+  letter-spacing:.08em;padding:2px 7px;border-radius:3px;text-transform:uppercase;}
+.mark.r{background:rgba(232,74,74,.15); color:var(--accent);}
+.mark.o{background:rgba(249,115,22,.15);color:var(--accent2);}
+.mark.y{background:rgba(234,179,8,.15); color:var(--yellow);}
+.mark.g{background:rgba(34,197,94,.15); color:var(--green);}
+
+/* ── FOOTER ── */
+.footer{margin-top:56px;padding-top:22px;border-top:1px solid var(--border);
+  font-size:12.5px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.footer a{color:var(--blue);text-decoration:none;}
+.tags{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);
+  background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:2px 8px;}
+
+@media(max-width:620px){
+  .atkdef,.bilingual{grid-template-columns:1fr;}
+  .atkdef-col:first-child,.bilingual .bl-fr{border-right:none;border-bottom:1px solid var(--border);}
+}
+</style>
+</head>
+<body class="lang-fr">
+
+<!-- LANG BAR -->
+<div class="lang-bar">
+  <button class="lang-btn active" onclick="setLang('fr')">🇫🇷 FR</button>
+  <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+</div>
+
+<!-- ═══════════════════════ HERO ═══════════════════════ -->
+<header class="hero">
+  <div class="hero-top">
+    <div class="badges">
+      <span class="badge badge-red">Incident Analysis</span>
+      <span class="badge badge-gray">Identity &amp; Access</span>
+      <span class="badge badge-blue">Credential Compromise</span>
+      <span class="badge badge-org">Mars · March 2026</span>
+    </div>
+  </div>
+
+  <h1>
+    <span class="fr-content">Brèche <span class="acc">COMPAS</span> :<br/>Un seul compte obsolète expose 243 000 enseignants</span>
+    <span class="en-content">The <span class="acc">COMPAS Breach</span>:<br/>One Stale Account Exposes 243,000 Teachers</span>
+  </h1>
+
+  <p class="hero-sub">
+    <span class="fr-content">Le 15 mars 2026, un attaquant utilise des identifiants externes compromis pour accéder silencieusement au SI RH du ministère de l'Éducation nationale. Pendant quatre jours, personne ne le remarque. Voici ce qui s'est passé — et ce que toute organisation peut faire dès aujourd'hui pour fermer la même faille.</span>
+    <span class="en-content">On March 15, 2026, an attacker uses compromised external credentials to silently access France's Ministry of Education HR system. For four days, no one notices. Here's what happened — and what every organization can do today to close the same gap.</span>
+  </p>
+
+  <div class="stat-row">
+    <div class="stat-pill"><span class="num red">243 K</span><span class="lbl fr-content">Agents exposés</span><span class="lbl en-content">Agents exposed</span></div>
+    <div class="stat-pill"><span class="num org">4 jours</span><span class="lbl fr-content">Temps de détection</span><span class="lbl en-content">Dwell time</span></div>
+    <div class="stat-pill"><span class="num blue">0</span><span class="lbl fr-content">MFA activé</span><span class="lbl en-content">MFA enforced</span></div>
+    <div class="stat-pill"><span class="num yellow">7,5 M+</span><span class="lbl fr-content">Records éducation FR 2026</span><span class="lbl en-content">FR education records 2026</span></div>
+  </div>
+
+  <div class="author-chip">
+    <div class="author-avatar">TA</div>
+    <div class="author-info">
+      <strong>Thomas Andres</strong><br/>
+      Senior IT Infrastructure Architect · AL-Conseil
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════ 01 ═══════════════════════ -->
+<section class="section">
+  <div class="section-header">
+    <span class="snum">01</span>
+    <h2><span class="fr-content">Ce qui s'est passé</span><span class="en-content">What Happened</span></h2>
+  </div>
+
+  <p>
+    <span class="fr-content">Le ministère de l'Éducation nationale gère les affectations des enseignants stagiaires via une plateforme RH interne : <strong>COMPAS</strong>. Le soir du 19 mars, le COSSIM (centre opérationnel de sécurité des SI du ministère) a détecté une activité anormale. L'attaquant avait déjà quatre jours d'accès libre derrière lui.</span>
+    <span class="en-content">France's Ministry of Education manages teacher placements through an internal HR platform called <strong>COMPAS</strong>. On the evening of March 19, the ministry's security operations center (COSSIM) detected anomalous activity. By then, the attacker had already been inside for four days.</span>
+  </p>
+
+  <div class="timeline">
+    <div class="tl-item red">
+      <div class="tl-date"><span class="fr-content">15 mars 2026 — J0</span><span class="en-content">March 15, 2026 — Day 0</span></div>
+      <div class="tl-title"><span class="fr-content">Accès initial — Compte externe compromis</span><span class="en-content">Initial Access — Compromised External Account</span></div>
+      <div class="tl-desc"><span class="fr-content">L'attaquant utilise les identifiants d'un compte externe (tuteur ou prestataire) pour s'authentifier sur COMPAS. Aucun MFA. La connexion est indiscernable d'un accès légitime.</span><span class="en-content">The attacker uses credentials belonging to an external account (likely a tutor or contractor) to authenticate to COMPAS. No MFA challenge. The connection looks identical to a legitimate login.</span></div>
+    </div>
+    <div class="tl-item org">
+      <div class="tl-date"><span class="fr-content">15–19 mars — J1 à J4</span><span class="en-content">March 15–19 — Days 1–4</span></div>
+      <div class="tl-title"><span class="fr-content">Exfiltration silencieuse</span><span class="en-content">Silent Exfiltration</span></div>
+      <div class="tl-desc"><span class="fr-content">Accès libre à la base de données. Identité, adresses domicile, téléphones, périodes d'absence de ~243 000 agents extraits. Aucune alerte ne se déclenche.</span><span class="en-content">Free access to the database. Identity records, home addresses, phone numbers, and absence periods for ~243,000 agents are extracted. No alert fires.</span></div>
+    </div>
+    <div class="tl-item ylw">
+      <div class="tl-date"><span class="fr-content">19 mars — soir</span><span class="en-content">March 19 — evening</span></div>
+      <div class="tl-title"><span class="fr-content">Détection par le COSSIM</span><span class="en-content">Detection by COSSIM</span></div>
+      <div class="tl-desc"><span class="fr-content">L'accès externe à COMPAS est suspendu. Une cellule de crise est activée. Les vérifications s'étendent à l'ensemble des SI du ministère.</span><span class="en-content">External access to COMPAS is suspended. A crisis cell is activated. Checks extend across all ministry information systems.</span></div>
+    </div>
+    <div class="tl-item blue">
+      <div class="tl-date"><span class="fr-content">21 mars</span><span class="en-content">March 21</span></div>
+      <div class="tl-title"><span class="fr-content">Données en vente sur le darkweb</span><span class="en-content">Data Surfaces on Resale Sites</span></div>
+      <div class="tl-desc"><span class="fr-content">L'acteur <strong>Hexdex</strong> publie un échantillon sur des forums de revente de données volées. La fuite n'est plus théorique : elle circule.</span><span class="en-content">Threat actor <strong>Hexdex</strong> posts a sample on darkweb data resale forums. The leak is no longer theoretical — it is actively circulating.</span></div>
+    </div>
+    <div class="tl-item purple">
+      <div class="tl-date"><span class="fr-content">23 mars — 22h00 — J+8</span><span class="en-content">March 23 — 22:00 — Day+8</span></div>
+      <div class="tl-title"><span class="fr-content">Communication publique</span><span class="en-content">Public Disclosure</span></div>
+      <div class="tl-desc"><span class="fr-content">Communiqué officiel du ministère. Saisine de l'ANSSI et de la CNIL. Dépôt de plainte au parquet de Paris. Les agents sont appelés à la vigilance.</span><span class="en-content">Official ministry statement. ANSSI and CNIL notified. Criminal complaint filed in Paris. Agents urged to stay vigilant against phishing and identity fraud.</span></div>
+    </div>
+  </div>
+
+  <div class="callout bad">
+    <strong>⚠ Risque RGPD · GDPR Risk</strong>
+    <span class="fr-content">L'article 33 du RGPD impose une notification à l'autorité de contrôle dans les <strong>72 heures</strong> suivant la prise de connaissance. Le ministère a détecté l'incident le 19 mars et communiqué publiquement le 23 mars — un écart de 96 heures. Le délai de notification à la CNIL n'est pas encore confirmé.</span>
+    <span class="en-content">Article 33 of the GDPR requires supervisory authority notification within <strong>72 hours</strong> of becoming aware of a breach. The ministry detected the incident on March 19 and disclosed publicly on March 23 — a 96-hour gap. The CNIL notification timeline has not yet been confirmed.</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 02 ═══════════════════════ -->
+<section class="section">
+  <div class="section-header">
+    <span class="snum blue">02</span>
+    <h2><span class="fr-content">Cause racine — Le problème des comptes externes oubliés</span><span class="en-content">Root Cause — The Forgotten External Account Problem</span></h2>
+  </div>
+
+  <p>
+    <span class="fr-content">L'attaque n'a requis ni zero-day, ni kit d'exploitation, ni outil avancé. L'attaquant s'est simplement connecté. C'est le type de brèche le plus dangereux : il est indiscernable d'un usage légitime.</span>
+    <span class="en-content">The attack required no zero-day, no exploit kit, no advanced tooling. The attacker simply logged in. That's the most dangerous kind of breach — it looks identical to legitimate use from every monitoring system's perspective.</span>
+  </p>
+
+  <div class="atkdef">
+    <div class="atkdef-col">
+      <h4>⚔ <span class="fr-content">Playbook de l'attaquant</span><span class="en-content">Attacker's Playbook</span></h4>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">Acquiert des identifiants (credential stuffing, phishing, ou réutilisation de mot de passe depuis une fuite antérieure)</span><span class="en-content">Acquires credentials (credential stuffing, phishing, or password reuse from a prior breach)</span></div></div>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">Identifie COMPAS comme un portail RH accessible depuis internet sans MFA</span><span class="en-content">Identifies COMPAS as an internet-accessible HR portal with no MFA</span></div></div>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">S'authentifie avec le compte externe — la connexion semble parfaitement normale</span><span class="en-content">Authenticates as the external account — connection appears entirely normal</span></div></div>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">Énumère et exporte la base sur 4 jours sans déclencher de limitation de débit</span><span class="en-content">Enumerates and bulk-exports the database over 4 days with no rate-limiting trigger</span></div></div>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">Vend un échantillon sur le darkweb, conserve le dataset complet pour usage ultérieur</span><span class="en-content">Sells a sample on a darkweb marketplace; retains the full dataset for further exploitation</span></div></div>
+    </div>
+    <div class="atkdef-col">
+      <h4>🛡 <span class="fr-content">Ce qui aurait dû bloquer l'attaque</span><span class="en-content">What Should Have Stopped It</span></h4>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">MFA sur tous les comptes externes — un simple TOTP bloque 99 % du credential stuffing</span><span class="en-content">MFA on all external accounts — a single TOTP prompt blocks 99% of credential-stuffing attacks</span></div></div>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">Revue trimestrielle des accès — les comptes tuteurs désactivés à la fin de l'engagement</span><span class="en-content">Quarterly access review — tutor/contractor accounts disabled when the engagement ends</span></div></div>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">Conditional Access géographique — bloquer les connexions depuis des pays inattendus</span><span class="en-content">Geolocation Conditional Access — block logins from unexpected countries</span></div></div>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">UEBA / Identity Protection — des requêtes en masse à des heures inhabituelles auraient dû alerter en quelques heures</span><span class="en-content">UEBA / anomaly detection — bulk read queries at unusual hours should trigger an alert within hours, not days</span></div></div>
+      <div class="atkdef-item"><div class="dot"></div><div><span class="fr-content">Accès Just-in-Time (PIM) — les comptes externes activés uniquement pendant la durée de l'engagement</span><span class="en-content">Just-in-Time access (PIM) — external accounts activated only during active engagements, then auto-expiring</span></div></div>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <strong>⚡ <span class="fr-content">Pattern structurel</span><span class="en-content">Structural Pattern</span></strong>
+    <span class="fr-content">C'est la <strong>troisième brèche majeure</strong> dans l'éducation française en 90 jours : plateforme GAEL (5,8 M de records, janvier), SGEC Enseignement catholique (1,5 M, 21 mars), COMPAS (243 K, 15 mars). <strong>Plus de 7,5 millions de personnes</strong> touchées. La surface d'attaque est identique à chaque fois : portails administratifs exposés sur internet, comptes externes, absence de MFA.</span>
+    <span class="en-content">This is the <strong>third major breach</strong> in French education in 90 days: GAEL platform (5.8M records, January), Catholic Education SGEC (1.5M, March 21), COMPAS (243K, March 15). Over <strong>7.5 million individuals</strong> affected. The attack surface is identical each time: internet-exposed administrative portals, external accounts, no MFA.</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 03 ═══════════════════════ -->
+<section class="section">
+  <div class="section-header">
+    <span class="snum green">03</span>
+    <h2><span class="fr-content">Playbook d'audit — Trouvez vos comptes COMPAS avant les attaquants</span><span class="en-content">Audit Playbook — Find Your COMPAS Accounts Before Attackers Do</span></h2>
+  </div>
+
+  <p>
+    <span class="fr-content">Chaque grande organisation dispose de comptes créés pour des prestataires, tuteurs ou auditeurs qui n'ont jamais été désactivés. Voici comment les identifier aujourd'hui avec les outils déjà en place.</span>
+    <span class="en-content">Every large organization has them: accounts created for contractors, tutors, auditors, or seasonal staff that were never disabled. Here's how to surface them today using tools you already have.</span>
+  </p>
+
+  <div class="code-wrap">
+    <div class="code-label"><span class="lang">PowerShell</span> <span class="fr-content">Entra ID — Comptes inactifs depuis 90+ jours</span><span class="en-content">Entra ID — Inactive accounts (no sign-in for 90+ days)</span></div>
+    <pre><span class="cm"># Requires Microsoft.Graph module</span>
+<span class="vr">$cutoff</span> = (Get-Date).AddDays(-<span class="nm">90</span>)
+
+<span class="fn">Get-MgUser</span> -All -Property DisplayName,UserPrincipalName,SignInActivity,AccountEnabled |
+  <span class="fn">Where-Object</span> {
+    <span class="vr">$_</span>.AccountEnabled <span class="op">-eq</span> <span class="kw">$true</span> <span class="op">-and</span> (
+      <span class="vr">$_</span>.SignInActivity.LastSignInDateTime <span class="op">-lt</span> <span class="vr">$cutoff</span> <span class="op">-or</span>
+      <span class="vr">$_</span>.SignInActivity.LastSignInDateTime <span class="op">-eq</span> <span class="kw">$null</span>
+    )
+  } |
+  <span class="fn">Select-Object</span> DisplayName, UserPrincipalName,
+    @{N=<span class="str">'LastSignIn'</span>; E={ <span class="vr">$_</span>.SignInActivity.LastSignInDateTime }},
+    @{N=<span class="str">'NeverLoggedIn'</span>; E={ <span class="vr">$_</span>.SignInActivity.LastSignInDateTime <span class="op">-eq</span> <span class="kw">$null</span> }} |
+  <span class="fn">Sort-Object</span> LastSignIn |
+  <span class="fn">Export-Csv</span> <span class="str">"entra_inactive_accounts.csv"</span> -NoTypeInformation -Encoding UTF8</pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-label"><span class="lang">PowerShell</span> <span class="fr-content">Active Directory — Comptes dormants activés (on-premises)</span><span class="en-content">Active Directory — Dormant enabled accounts (on-premises)</span></div>
+    <pre><span class="cm"># lastLogonTimestamp répliqué toutes les 14 jours — plus fiable que LastLogonDate</span>
+<span class="vr">$cutoff</span> = (Get-Date).AddDays(-<span class="nm">90</span>).ToFileTime()
+
+<span class="fn">Get-ADUser</span> -Filter { Enabled <span class="op">-eq</span> <span class="kw">$true</span> } `
+  -Properties lastLogonTimestamp, Description, WhenCreated |
+  <span class="fn">Where-Object</span> {
+    <span class="vr">$_</span>.lastLogonTimestamp <span class="op">-lt</span> <span class="vr">$cutoff</span> <span class="op">-or</span>
+    <span class="vr">$_</span>.lastLogonTimestamp <span class="op">-eq</span> <span class="kw">$null</span>
+  } |
+  <span class="fn">Select-Object</span> Name, SamAccountName, Description, WhenCreated,
+    @{N=<span class="str">'LastLogon'</span>; E={ [DateTime]::FromFileTime(<span class="vr">$_</span>.lastLogonTimestamp) }} |
+  <span class="fn">Export-Csv</span> <span class="str">"ad_dormant_accounts.csv"</span> -NoTypeInformation -Encoding UTF8</pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-label"><span class="lang">KQL</span> <span class="fr-content">Sentinel — Connexions réussies hors pays autorisés</span><span class="en-content">Sentinel — Successful sign-ins from unexpected countries</span></div>
+    <pre><span class="kw">let</span> AllowedCountries = dynamic([<span class="str">"FR"</span>, <span class="str">"BE"</span>, <span class="str">"CH"</span>, <span class="str">"LU"</span>]);
+
+SigninLogs
+| <span class="fn">where</span> TimeGenerated > ago(<span class="nm">30d</span>)
+| <span class="fn">where</span> ResultType == <span class="nm">0</span>           <span class="cm">// successful only</span>
+| <span class="fn">where</span> Location <span class="op">!in</span> (AllowedCountries)
+| <span class="fn">project</span>
+    TimeGenerated, UserPrincipalName, AppDisplayName,
+    Location, IPAddress, RiskLevelDuringSignIn,
+    ConditionalAccessStatus
+| <span class="fn">order by</span> TimeGenerated <span class="kw">desc</span></pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-label"><span class="lang">KQL</span> <span class="fr-content">Sentinel — Impossible Travel (même utilisateur, 2 pays en moins de 2h)</span><span class="en-content">Sentinel — Impossible Travel (same user, 2 countries within 2 hours)</span></div>
+    <pre>SigninLogs
+| <span class="fn">where</span> TimeGenerated > ago(<span class="nm">7d</span>) <span class="op">and</span> ResultType == <span class="nm">0</span>
+| <span class="fn">project</span> TimeGenerated, UserPrincipalName, Location, IPAddress
+| <span class="fn">join kind=inner</span> (
+    SigninLogs | <span class="fn">where</span> TimeGenerated > ago(<span class="nm">7d</span>) <span class="op">and</span> ResultType == <span class="nm">0</span>
+    | <span class="fn">project</span> T2=TimeGenerated, UserPrincipalName, L2=Location, IP2=IPAddress
+  ) on UserPrincipalName
+| <span class="fn">where</span> abs(<span class="fn">datetime_diff</span>(<span class="str">'minute'</span>, TimeGenerated, T2)) < <span class="nm">120</span>
+  <span class="op">and</span> Location != L2 <span class="op">and</span> IPAddress != IP2
+| <span class="fn">project</span> UserPrincipalName, TimeGenerated, Location, IPAddress, T2, L2, IP2
+| <span class="fn">order by</span> TimeGenerated <span class="kw">desc</span></pre>
+  </div>
+
+  <div class="code-wrap">
+    <div class="code-label"><span class="lang">KQL</span> <span class="fr-content">Sentinel — Volume de requêtes anormal (bulk read)</span><span class="en-content">Sentinel — Bulk read anomaly detection</span></div>
+    <pre><span class="cm">// Calibrer le seuil selon le baseline normal de l'application</span>
+SigninLogs
+| <span class="fn">where</span> TimeGenerated > ago(<span class="nm">30d</span>) <span class="op">and</span> ResultType == <span class="nm">0</span>
+| <span class="fn">summarize</span>
+    SessionCount = <span class="fn">count</span>(),
+    UniqueIPs    = <span class="fn">dcount</span>(IPAddress),
+    Countries    = <span class="fn">make_set</span>(Location)
+    by UserPrincipalName, AppDisplayName, bin(TimeGenerated, <span class="nm">1d</span>)
+| <span class="fn">where</span> SessionCount > <span class="nm">50</span>
+| <span class="fn">order by</span> SessionCount <span class="kw">desc</span></pre>
+  </div>
+
+  <div class="callout info">
+    <strong>⚠ <span class="fr-content">Gotcha AD</span><span class="en-content">AD Gotcha</span></strong>
+    <span class="fr-content"><code>LastLogonDate</code> en AD se réplique seulement toutes les <strong>14 jours</strong> entre les contrôleurs de domaine. Toujours utiliser <code>lastLogonTimestamp</code> converti depuis FileTime. Pour les comptes hybrides, croiser avec les Entra ID Sign-in Logs — la source de vérité est toujours le cloud.</span>
+    <span class="en-content"><code>LastLogonDate</code> in AD replicates only every <strong>14 days</strong> across domain controllers. Always use <code>lastLogonTimestamp</code> converted from FileTime. For hybrid accounts, cross-reference with Entra ID Sign-in Logs — the ground truth is always the cloud.</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 04 ═══════════════════════ -->
+<section class="section">
+  <div class="section-header">
+    <span class="snum purple">04</span>
+    <h2><span class="fr-content">Matrice de remédiation prioritaire</span><span class="en-content">Remediation Priority Matrix</span></h2>
+  </div>
+
+  <p>
+    <span class="fr-content">Si ce pattern de brèche s'applique à votre organisation — ce qui est très probable — voici où investir le prochain sprint.</span>
+    <span class="en-content">If this breach pattern applies to your organization — and it very likely does — here's where to invest your next sprint.</span>
+  </p>
+
+  <div class="priority-grid">
+    <div class="pcard p0">
+      <div class="ptag">🔴 <span class="fr-content">Critique — Cette semaine</span><span class="en-content">Critical — This Week</span></div>
+      <h4>MFA <span class="fr-content">sur tous les comptes externes</span><span class="en-content">on All External Accounts</span></h4>
+      <p><span class="fr-content">Aucune exception pour prestataires, tuteurs, auditeurs. Un simple TOTP bloque l'intégralité du credential stuffing.</span><span class="en-content">No exception for contractors, tutors, auditors. A single TOTP prompt blocks 100% of credential-stuffing attacks against these accounts.</span></p>
+    </div>
+    <div class="pcard p0">
+      <div class="ptag">🔴 <span class="fr-content">Critique — Cette semaine</span><span class="en-content">Critical — This Week</span></div>
+      <h4><span class="fr-content">Bloquer les connexions hors pays</span><span class="en-content">Block Out-of-Country Sign-ins</span></h4>
+      <p><span class="fr-content">Conditional Access Named Locations. Si l'application est réservée aux agents français, aucune raison valide de connexion depuis l'étranger.</span><span class="en-content">Conditional Access Named Locations. If the application is France-only, there is zero valid reason for a login from abroad. 15-minute configuration.</span></p>
+    </div>
+    <div class="pcard p1">
+      <div class="ptag">🟠 <span class="fr-content">Haute — Ce mois</span><span class="en-content">High — This Month</span></div>
+      <h4><span class="fr-content">Revue trimestrielle des accès</span><span class="en-content">Quarterly Access Review</span></h4>
+      <p><span class="fr-content">Exécuter les scripts d'audit ci-dessus. Désactiver ou supprimer les comptes inactifs depuis 90+ jours. Automatiser le off-boarding prestataires.</span><span class="en-content">Run the dormant account scripts above. Disable or delete accounts inactive for 90+ days. Automate contractor off-boarding via HR system integration.</span></p>
+    </div>
+    <div class="pcard p1">
+      <div class="ptag">🟠 <span class="fr-content">Haute — Ce mois</span><span class="en-content">High — This Month</span></div>
+      <h4>UEBA / <span class="fr-content">Identity Protection</span><span class="en-content">Identity Protection Alerts</span></h4>
+      <p><span class="fr-content">Entra ID Protection ou équivalent. Une connexion à risque moyen/élevé doit déclencher une step-up auth en quelques minutes, pas un dwell de 4 jours.</span><span class="en-content">Enable Entra ID Protection. Medium and high-risk sign-ins should trigger immediate step-up authentication — not a 4-day dwell time.</span></p>
+    </div>
+    <div class="pcard p2">
+      <div class="ptag">🟡 <span class="fr-content">Moyen — Ce trimestre</span><span class="en-content">Medium — This Quarter</span></div>
+      <h4><span class="fr-content">Accès Just-in-Time (PIM)</span><span class="en-content">Just-in-Time Access (PIM)</span></h4>
+      <p><span class="fr-content">Convertir les accès externes permanents en JIT via PIM. Les comptes s'activent uniquement le temps de l'engagement, puis expirent automatiquement.</span><span class="en-content">Convert persistent external access to Just-in-Time. Accounts activate only for the engagement duration, then auto-expire — no manual clean-up needed.</span></p>
+    </div>
+    <div class="pcard p3">
+      <div class="ptag">🟢 <span class="fr-content">Continu</span><span class="en-content">Ongoing</span></div>
+      <h4><span class="fr-content">Rate-limiting applicatif</span><span class="en-content">Application-Layer Rate Limiting</span></h4>
+      <p><span class="fr-content">Alerter quand une session unique requête plus de N enregistrements sur une fenêtre de temps. Aurait déclenché une alerte dès J1 dans le cas COMPAS.</span><span class="en-content">Flag when a single session queries more than N records in a time window. This alone would have triggered an alert on Day 1 of the COMPAS attack.</span></p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 05 ═══════════════════════ -->
+<section class="section">
+  <div class="section-header">
+    <span class="snum org">05</span>
+    <h2><span class="fr-content">Risque aval — Ce que 243 000 profils permettent</span><span class="en-content">Downstream Risk — What 243,000 Profiles Enable</span></h2>
+  </div>
+
+  <p>
+    <span class="fr-content">Les données circulent déjà. Voici ce que les adversaires vont construire avec ce dataset.</span>
+    <span class="en-content">The data is already circulating. Here is what adversaries will build with it — and the timeline is measured in months, not days.</span>
+  </p>
+
+  <table class="checklist">
+    <thead>
+      <tr>
+        <th><span class="fr-content">Type d'attaque</span><span class="en-content">Attack Type</span></th>
+        <th><span class="fr-content">Données exploitées</span><span class="en-content">Data Used</span></th>
+        <th><span class="fr-content">Niveau</span><span class="en-content">Risk</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <strong><span class="fr-content">Phishing ciblé</span><span class="en-content">Targeted Phishing</span></strong><br/>
+          <span class="fr-content" style="font-size:12.5px;color:var(--muted)">Email ou SMS imitant le ministère, les rectorats ou la paye</span>
+          <span class="en-content" style="font-size:12.5px;color:var(--muted)">Email or SMS impersonating the Ministry, Academy, or payroll services</span>
+        </td>
+        <td><span class="fr-content">Nom + employeur + téléphone</span><span class="en-content">Name + employer + phone</span></td>
+        <td><span class="mark r">Critique</span></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><span class="fr-content">Usurpation d'identité</span><span class="en-content">Identity Theft</span></strong><br/>
+          <span class="fr-content" style="font-size:12.5px;color:var(--muted)">Ouverture de comptes frauduleux à partir des PII vérifiés</span>
+          <span class="en-content" style="font-size:12.5px;color:var(--muted)">Creating fraudulent accounts at banks or government portals using verified PII</span>
+        </td>
+        <td><span class="fr-content">Nom + adresse + téléphone</span><span class="en-content">Name + home address + phone</span></td>
+        <td><span class="mark r">Critique</span></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><span class="fr-content">Ingénierie sociale</span><span class="en-content">Social Engineering</span></strong><br/>
+          <span class="fr-content" style="font-size:12.5px;color:var(--muted)">Appels se faisant passer pour les RH du rectorat, demandant des codes ou documents</span>
+          <span class="en-content" style="font-size:12.5px;color:var(--muted)">Calls impersonating HR, requesting login codes or official documents</span>
+        </td>
+        <td><span class="fr-content">Nom + contexte professionnel + téléphone</span><span class="en-content">Name + professional context + phone</span></td>
+        <td><span class="mark o">Haute</span></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><span class="fr-content">Fraude sur absences</span><span class="en-content">Absence-Based Fraud</span></strong><br/>
+          <span class="fr-content" style="font-size:12.5px;color:var(--muted)">Impersonation pendant les périodes d'absence connues pour intercepter des communications</span>
+          <span class="en-content" style="font-size:12.5px;color:var(--muted)">Impersonating agents during known absence periods to intercept communications</span>
+        </td>
+        <td><span class="fr-content">Dates d'absence + coordonnées</span><span class="en-content">Absence dates + contact info</span></td>
+        <td><span class="mark o">Haute</span></td>
+      </tr>
+      <tr>
+        <td>
+          <strong><span class="fr-content">Credential stuffing — 2e vague</span><span class="en-content">Credential Stuffing — 2nd Wave</span></strong><br/>
+          <span class="fr-content" style="font-size:12.5px;color:var(--muted)">Utilisation des UPN pour tester les mêmes identifiants sur d'autres portails ministériels</span>
+          <span class="en-content" style="font-size:12.5px;color:var(--muted)">Using exposed identities to try credentials on other Ministry portals</span>
+        </td>
+        <td><span class="fr-content">UPN + contexte comportemental</span><span class="en-content">UPNs + behavioural context</span></td>
+        <td><span class="mark y">Moyen</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout purple">
+    <strong>🧠 <span class="fr-content">Insight clé</span><span class="en-content">Key Insight</span></strong>
+    <span class="fr-content">Ce qui rend cette fuite particulièrement exploitable, c'est la <em>combinaison</em> des champs : nom + employeur vérifié + adresse domicile + téléphone direct + fenêtres d'absence connues. Chaque élément seul est peu valorisé. Ensemble, ils produisent un profil d'ingénierie sociale assez précis pour tromper même des individus vigilants.</span>
+    <span class="en-content">What makes this breach especially exploitable is the <em>combination</em> of fields: name + verified employer + home address + direct phone + known absence windows. Each element alone is low-value. Together they produce a social engineering profile accurate enough to bypass the caution of even security-aware individuals.</span>
+  </div>
+</section>
+
+<!-- ═══════════════════════ 06 ═══════════════════════ -->
+<section class="section">
+  <div class="section-header">
+    <span class="snum">06</span>
+    <h2><span class="fr-content">Conclusion</span><span class="en-content">Bottom Line</span></h2>
+  </div>
+
+  <p>
+    <span class="fr-content">La brèche COMPAS n'est pas une attaque sophistiquée par un acteur étatique. C'est la conséquence prévisible de comptes externes non gérés sans aucun contrôle compensatoire. La leçon se généralise à toute organisation qui accorde des accès à des prestataires, partenaires ou personnels saisonniers.</span>
+    <span class="en-content">The COMPAS breach is not a sophisticated nation-state attack. It is a textbook consequence of unmanaged external accounts with no compensating controls. The lesson generalises to every organization that grants access to contractors, partners, or seasonal staff.</span>
+  </p>
+
+  <div class="callout ok">
+    <strong>✅ <span class="fr-content">3 actions pour lundi matin</span><span class="en-content">3 Actions for Monday Morning</span></strong>
+    <span class="fr-content">
+      1. Extraire le rapport des comptes dormants Entra ID / AD avec les scripts ci-dessus. Tout compte externe inactif depuis 90+ jours est à désactiver immédiatement.<br/>
+      2. Auditer les Conditional Access policies. Toute application exposée sur internet doit exiger le MFA pour les identités externes — sans exception.<br/>
+      3. Activer Entra ID Protection. Une connexion à risque moyen doit réveiller quelqu'un dans l'heure, pas quatre jours plus tard.
+    </span>
+    <span class="en-content">
+      1. Pull your dormant account report (Entra ID + AD) using the scripts above. Any external account inactive for 90+ days is a candidate for immediate disabling.<br/>
+      2. Audit your Conditional Access policies. Every internet-facing application must require MFA for external identities — no exceptions.<br/>
+      3. Enable Entra ID Protection. A medium-risk sign-in should wake someone up within the hour — not four days later.
+    </span>
+  </div>
+
+  <p>
+    <span class="fr-content">L'attaquant dans ce cas n'était pas particulièrement habile — il était simplement patient. Patient au point de rester dans le système pendant quatre jours sans qu'aucune alerte ne se déclenche. L'écart entre des <em>contrôles capables</em> et des <em>contrôles déployés</em>, c'est là que vivent les brèches.</span>
+    <span class="en-content">The attacker in this case was not particularly skilled — they were simply patient. Patient enough to sit inside a system for four days while no alert fired. The gap between <em>capable controls</em> and <em>deployed controls</em> is where breaches live.</span>
+  </p>
+
+  <p style="color:var(--muted);">
+    <span class="fr-content">Quatre jours de dwell time. Un seul compte obsolète. 243 000 personnes qui naviguent dans les conséquences pendant des années.</span>
+    <span class="en-content">Four days of dwell time. One stale account. 243,000 people navigating the downstream consequences for years.</span>
+  </p>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div>
+    <strong style="color:var(--white);">Thomas Andres</strong> · Senior IT Infrastructure Architect · AL-Conseil<br/>
+    <a href="mailto:contact@alconseil.info">contact@alconseil.info</a>
+  </div>
+  <div style="color:var(--muted);font-size:12px;">
+    <span class="fr-content">Basé sur les communiqués officiels du ministère, ANSSI, CNIL — Mars 2026</span>
+    <span class="en-content">Based on official statements from the French Ministry, ANSSI, CNIL — March 2026</span>
+  </div>
+</footer>
+
+<div class="tags">
+  <span class="tag">#CyberSecurity</span>
+  <span class="tag">#IdentityAndAccess</span>
+  <span class="tag">#MFA</span>
+  <span class="tag">#ZeroTrust</span>
+  <span class="tag">#EntraID</span>
+  <span class="tag">#KQL</span>
+  <span class="tag">#PowerShell</span>
+  <span class="tag">#DataBreach</span>
+  <span class="tag">#COMPAS</span>
+  <span class="tag">#ANSSI</span>
+  <span class="tag">#CNIL</span>
+  <span class="tag">#RGPD</span>
+</div>
+
+<script>
+function setLang(l){
+  document.body.className='lang-'+l;
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(l));
+  });
+}
+// Auto-detect browser language
+if(navigator.language && navigator.language.startsWith('fr')){
+  setLang('fr');
+} else {
+  // Default FR but keep button states
+}
+</script>
+</body>
+</html>
